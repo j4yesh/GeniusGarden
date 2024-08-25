@@ -1,12 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Text.RegularExpressions;
 
 public class Gameplay : MonoBehaviour
-{
+{   
+    public BoxCollider2D boundingBoxCollider; 
     public GameObject Head;
     private Vector2 startPos;
-    private Vector2 movement = new Vector2(0.1f, 0f);  // Movement vector
+    private Vector2 movement = new Vector2(0f, 0f);  // Movement vector
 
     [SerializeField]
     public FloatingJoystick __joystick;
@@ -16,9 +18,15 @@ public class Gameplay : MonoBehaviour
     public Vector2 topRight;
 
     public float speed = 2f;
+
+    public Transform rear;
+
+    public Utility until = null;
+
     void Start()
     {
-        // Initial setup if needed
+        boundingBoxCollider = Head.GetComponent<BoxCollider2D>();
+        rear = Head.transform;
     }
 
     void Update()
@@ -61,13 +69,26 @@ public class Gameplay : MonoBehaviour
 
         Vector2 newPosition = new Vector2(Head.transform.position.x + movement.x * speed * Time.deltaTime,
                                           Head.transform.position.y + movement.y * speed * Time.deltaTime);
-        if (newPosition.x > bottomLeft.x && newPosition.x < topRight.y &&
-        newPosition.x > bottomLeft.x && newPosition.y < topRight.y)
+        if (newPosition.x > bottomLeft.x && newPosition.x < topRight.x &&
+        newPosition.y > bottomLeft.y && newPosition.y < topRight.y)
         {
             SetPosition(newPosition);
 
         }
-        Debug.Log(__joystick.Direction);
+        
+        foreach (GameObject obj in  GameObject.FindGameObjectsWithTag("Rat"))
+        {
+            if (boundingBoxCollider.bounds.Contains(obj.transform.position))
+            {   
+                if(until.tryToAnswer(obj.name)){
+                    Debug.Log("Object within bounding box: " + obj.name);
+                    obj.GetComponent<Follower>().toFollow = rear;
+                    rear = obj.transform;
+                    obj.tag = "Snake";
+                    until.generateQuestion();
+                }
+            }
+        }
     }
 
     // Convert screen position to a centered position where the screen center is (0, 0)
@@ -82,15 +103,12 @@ public class Gameplay : MonoBehaviour
     {
         startPos = position;
         isTouching = true;
-        Debug.Log("Touch/Click began at: " + startPos);
     }
 
     void OnTouchMove(Vector2 position)
     {
         if (isTouching)
         {
-            Debug.Log("Touch/Click is moving at: " + position);
-
             // Calculate the length (magnitude) of the vector
             float length = Mathf.Sqrt(__joystick.Direction.x * __joystick.Direction.x + 
             __joystick.Direction.y * __joystick.Direction.y);
@@ -119,7 +137,6 @@ public class Gameplay : MonoBehaviour
     void OnTouchEnd(Vector2 position)
     {
         isTouching = false;
-        Debug.Log("Touch/Click ended at: " + position);
         // Add additional logic for what should happen when touch/click ends
     }
 
@@ -128,4 +145,8 @@ public class Gameplay : MonoBehaviour
     {
         Head.transform.position = new Vector3(newPosition.x, newPosition.y, Head.transform.position.z);
     }
+
+    
+    
+
 }
