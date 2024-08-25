@@ -31,7 +31,6 @@ public class Gameplay : MonoBehaviour
 
     void Update()
     {
-        // Handle Touch Input
         if (Input.touchCount > 0)
         {
             Touch touch = Input.GetTouch(0);
@@ -53,7 +52,6 @@ public class Gameplay : MonoBehaviour
             }
         }
 
-        // Handle Mouse Input
         else if (Input.GetMouseButtonDown(0))
         {
             OnTouch(GetCenteredPosition(Input.mousePosition));
@@ -85,13 +83,13 @@ public class Gameplay : MonoBehaviour
                     obj.GetComponent<Follower>().toFollow = rear;
                     rear = obj.transform;
                     obj.tag = "Snake";
-                    until.generateQuestion();
+                }else{
+                    Debug.Log("Wrong ans check once ");
                 }
             }
         }
     }
 
-    // Convert screen position to a centered position where the screen center is (0, 0)
     Vector2 GetCenteredPosition(Vector2 position)
     {
         float x = position.x - (Screen.width / 2f);
@@ -129,6 +127,7 @@ public class Gameplay : MonoBehaviour
 
                 // Apply the rotation to the Head's Transform (assuming rotation around the Z-axis)
                 Head.transform.rotation = Quaternion.Euler(0, 0, angleInDegrees);
+                
             }
             
         }
@@ -137,10 +136,8 @@ public class Gameplay : MonoBehaviour
     void OnTouchEnd(Vector2 position)
     {
         isTouching = false;
-        // Add additional logic for what should happen when touch/click ends
     }
 
-    // Function to set the position of the Head GameObject
     public void SetPosition(Vector2 newPosition)
     {
         Head.transform.position = new Vector3(newPosition.x, newPosition.y, Head.transform.position.z);

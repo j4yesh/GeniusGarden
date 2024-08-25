@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using TMPro;
+using DG.Tweening;
 
 public class Follower : MonoBehaviour
 {   
@@ -14,6 +15,8 @@ public class Follower : MonoBehaviour
         GameObject num = childTransform.gameObject;
         numberText = num.GetComponent<TextMeshPro>();
         numberText.text=this.name;
+        // Invoke("destroyTime",4f);
+        // transform.DOScale(2, 3);
     }
 
     private void Update()
@@ -33,5 +36,9 @@ public class Follower : MonoBehaviour
     }
     public void setNumber(string s){
         numberText.text=s;
+    }
+
+    void destroyTime(){
+        // Destroy(this);
     }
 }

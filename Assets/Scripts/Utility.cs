@@ -34,7 +34,7 @@ public class Utility : MonoBehaviour
             Rats[i%preColor.Length].GetComponent<SpriteRenderer>().color = preColor[i%preColor.Length];
         }   
 
-        generateQuestion();
+        // generateQuestion();
     }
 
     public bool tryToAnswer(string ans){
@@ -76,5 +76,34 @@ public class Utility : MonoBehaviour
         newIns.GetComponent<Follower>().setNumber(this.curAnswer);
         newIns.GetComponent<SpriteRenderer>().color=this.preColor[Random.Range(0,9)];
     }
+
+    public void spawnDummyRat(Vector3 pos,string dummyAns){
+        GameObject dummy = Instantiate(ratTemplate, pos, Quaternion.identity);
+
+        dummy.name=dummyAns;
+        dummy.GetComponent<SpriteRenderer>().color=this.preColor[Random.Range(0,9)];
+        StartCoroutine(this.destroyRat(dummy));
+    }
+
+    public void setQuestion(string question,string answer,Vector3 pos){
+        this.equationQuestion = question;
+        this.curAnswer= answer;
+
+        questionBoard.GetComponent<TextMeshProUGUI>().text = question;
+
+        GameObject newIns = Instantiate(ratTemplate, pos, Quaternion.identity);
+
+        // new Vector3(this.headPos.position.x+Random.Range(4,-4),this.headPos.position.y+Random.Range(4,-4), 0)
+
+        newIns.name=answer;
+        newIns.GetComponent<Follower>().setNumber(answer);
+        newIns.GetComponent<SpriteRenderer>().color=this.preColor[Random.Range(0,9)];
+        StartCoroutine(this.destroyRat(newIns));
+    }
+   IEnumerator destroyRat(GameObject obj) {
+    yield return new WaitForSeconds(5);
+        if(obj.tag=="Rat")Destroy(obj);
+    }
+
 }
 
