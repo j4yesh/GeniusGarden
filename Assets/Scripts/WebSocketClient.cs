@@ -13,8 +13,8 @@ public class payLoad
     public float[] position;
     public float rotation;
     public string question;
-
     public string answer;
+    public string name;
 }
 
 public class WebSocketClient : MonoBehaviour
@@ -79,21 +79,43 @@ public class WebSocketClient : MonoBehaviour
                 this.selfId = pl.socketId;
                 Vector3 newPosition = new Vector3(pl.position[0],pl.position[1],pl.position[2]);
                 transform.position = newPosition;
+                this.GetComponent<Gameplay>().setName(pl.name);
+                playerMap.Add(this.selfId, this.gameObject);
             }
             else if (pl.type == "new player")
             {
                 GameObject p = Instantiate(playerTemp,
                   new Vector3(pl.position[0],
                   pl.position[1], pl.position[2]), Quaternion.identity);
-
+                p.GetComponent<remoteGameplay>().selfId = pl.socketId;
+                p.GetComponent<remoteGameplay>().setLabel(pl.name);
+                
                 playerMap.Add(pl.socketId, p);
+                Debug.Log("changing name from socket 1");
             }
             else if (pl.type == "leave player")
             {
                 if (playerMap.ContainsKey(pl.socketId))
-                {
+                {   
+                    playerMap[pl.socketId].GetComponent<remoteGameplay>().destoyFollowers();
                     Destroy(playerMap[pl.socketId]);
                     playerMap.Remove(pl.socketId);
+                    // GameObject [] Rats = GameObject.FindGameObjectsWithTag("Rat");
+                    // foreach(GameObject it in Rats){
+                    //     if(it.GetComponent<Follower>().toFollowStr==pl.socketId){
+                    //         Debug.Log("Destroy Call : "+pl.socketId);
+                    //         Destroy(it);
+                    //     }
+                    // }
+                }
+            }else if(pl.type == "addRat"){
+                if(playerMap.ContainsKey(pl.question)){
+                    if(pl.question == this.selfId){
+                        this.GetComponent<Gameplay>().addRat(pl.answer);
+                    }else{
+                        GameObject obj = playerMap[pl.question];
+                        obj.GetComponent<remoteGameplay>().addRat(pl.answer);
+                    }
                 }
             }
             Debug.Log("OnMessage! " + jsonString);
@@ -133,7 +155,7 @@ public class WebSocketClient : MonoBehaviour
                 + "}";
 
 
-                await websocket.SendText(jsonMessage);
+                 websocket.SendText(jsonMessage);
 
             }
             catch (Exception ex)
@@ -161,6 +183,36 @@ public class WebSocketClient : MonoBehaviour
             {
                 Debug.LogError($"Error closing WebSocket: {ex.Message}");
             }
+        }
+    }
+
+    public void attachRat(string str){
+        // this.GetComponent<WebSocketClient>().attachRat(obj.name);
+         if (websocket.State == WebSocketState.Open)
+        {
+            try
+            {
+                string jsonMessage = "{"
+                + "\"socketId\": \"" + this.selfId + "\","
+                + "\"type\": \"addRat\","
+                + "\"position\": [" + this.playerPosition.position.x + ", " 
+                                    + this.playerPosition.position.y + ", " 
+                                    + this.playerPosition.position.z + "],"
+                + "\"rotation\": " + this.playerPosition.transform.rotation.eulerAngles.z + ","
+                + "\"answer\": \"" + str + "\""
+                + "}";
+
+                 websocket.SendText(jsonMessage);
+
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Send error: {ex.Message}");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("WebSocket is not open. Current state: " + websocket.State);
         }
     }
 }

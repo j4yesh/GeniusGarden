@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Rat
   - Snake
+  - playerLabel
   layers:
   - Default
   - TransparentFX

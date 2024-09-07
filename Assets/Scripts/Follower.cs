@@ -1,22 +1,25 @@
 using System.Collections;
 using UnityEngine;
 using TMPro;
-using DG.Tweening;
+
 
 public class Follower : MonoBehaviour
 {   
     public Transform toFollow = null;   
-    public float delay = 1f;  // Delay used in the coroutine
+    public float delay = 1f; 
 
     public TextMeshPro numberText;
 
+    public string toFollowStr="";
+
+    void onLoad(){
+    }
     private void Start(){
         Transform childTransform = transform.Find("num");
         GameObject num = childTransform.gameObject;
         numberText = num.GetComponent<TextMeshPro>();
-        numberText.text=this.name;
-        // Invoke("destroyTime",4f);
-        // transform.DOScale(2, 3);
+        numberText.text=this.name;  
+        
     }
 
     private void Update()
@@ -38,7 +41,4 @@ public class Follower : MonoBehaviour
         numberText.text=s;
     }
 
-    void destroyTime(){
-        // Destroy(this);
-    }
 }

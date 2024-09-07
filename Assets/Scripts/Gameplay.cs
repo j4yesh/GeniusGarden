@@ -8,7 +8,7 @@ public class Gameplay : MonoBehaviour
     public BoxCollider2D boundingBoxCollider; 
     public GameObject Head;
     private Vector2 startPos;
-    private Vector2 movement = new Vector2(0f, 0f);  // Movement vector
+    private Vector2 movement = new Vector2(0f, 0f);  
 
     [SerializeField]
     public FloatingJoystick __joystick;
@@ -21,12 +21,24 @@ public class Gameplay : MonoBehaviour
 
     public Transform rear;
 
-    public Utility until = null;
+    public Utility util = null;
 
-    void Start()
+    private GameObject playerLabel;
+
+    public GameObject playerLabelTemp;
+
+    async void Start()
     {
         boundingBoxCollider = Head.GetComponent<BoxCollider2D>();
         rear = Head.transform;
+         playerLabel = Instantiate(playerLabelTemp,
+                  new Vector3(0,0,0), Quaternion.identity);
+         playerLabel.GetComponent<playerLabel>().attach(this.Head);
+         playerLabel.GetComponent<playerLabel>().setName("you");
+    }
+
+    public void setName(string str){
+         playerLabel.GetComponent<playerLabel>().setName(str);
     }
 
     void Update()
@@ -78,16 +90,27 @@ public class Gameplay : MonoBehaviour
         {
             if (boundingBoxCollider.bounds.Contains(obj.transform.position))
             {   
-                if(until.tryToAnswer(obj.name)){
+                if(util.tryToAnswer(obj.name)){
                     Debug.Log("Object within bounding box: " + obj.name);
-                    obj.GetComponent<Follower>().toFollow = rear;
-                    rear = obj.transform;
+                    // obj.GetComponent<Follower>().toFollow = rear;
+                    // rear = obj.transform;
                     obj.tag = "Snake";
+                    Destroy(obj);
+                    // obj.GetComponent<Follower>().toFollowStr=this.GetComponent<WebSocketClient>().selfId;
+                    this.GetComponent<WebSocketClient>().attachRat(obj.name);
                 }else{
                     Debug.Log("Wrong ans check once ");
+                    Destroy(obj);
                 }
             }
         }
+    }
+
+    public void addRat(string str){
+        GameObject obj = this.util.getNewRat(str);
+        obj.GetComponent<Follower>().toFollow = rear;
+        rear = obj.transform;
+        obj.tag = "Snake";
     }
 
     Vector2 GetCenteredPosition(Vector2 position)
@@ -107,25 +130,20 @@ public class Gameplay : MonoBehaviour
     {
         if (isTouching)
         {
-            // Calculate the length (magnitude) of the vector
             float length = Mathf.Sqrt(__joystick.Direction.x * __joystick.Direction.x + 
             __joystick.Direction.y * __joystick.Direction.y);
 
-            if (length > 0) // Prevent division by zero
+            if (length > 0)
             {
-                // Get the direction from the joystick
                 movement.x = __joystick.Direction.x;
                 movement.y = __joystick.Direction.y;
 
                 movement.x = movement.x / length;
                 movement.y = movement.y / length;
-                // Calculate the angle in radians
                 float angle = Mathf.Atan2(movement.y, movement.x);
 
-                // Convert radians to degrees
                 float angleInDegrees = angle * Mathf.Rad2Deg;
 
-                // Apply the rotation to the Head's Transform (assuming rotation around the Z-axis)
                 Head.transform.rotation = Quaternion.Euler(0, 0, angleInDegrees);
                 
             }
