@@ -26,10 +26,14 @@ public class WebSocketClient : MonoBehaviour
     public string selfId;
 
     public GameObject util;
-    async void Start()
-    {
+
+    private bool started = false;
+    public async void Initiate(string Endpoint)
+    {   
+        this.started = true;
         playerMap = new Dictionary<string, GameObject>();
-        websocket = new WebSocket("ws://localhost:8080/game");
+        // websocket = new WebSocket("ws://localhost:8080/game/1e769");
+        websocket = new WebSocket(Endpoint);
 
         websocket.OnOpen += () =>
         {
@@ -131,13 +135,22 @@ public class WebSocketClient : MonoBehaviour
         {
             Debug.LogError($"Connection error: {ex.Message}");
         }
+
+        
     }
+
+    
 
     void Update()
     {
-#if !UNITY_WEBGL || UNITY_EDITOR
+        try{
+
+#if  (!UNITY_WEBGL || UNITY_EDITOR)
         websocket.DispatchMessageQueue();
 #endif
+        }catch{
+            
+        }
     }
 
     async void SendWebSocketMessage()
