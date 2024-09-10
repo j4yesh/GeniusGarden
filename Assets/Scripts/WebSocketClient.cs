@@ -15,6 +15,8 @@ public class payLoad
     public string question;
     public string answer;
     public string name;
+
+    public string data;
 }
 
 public class WebSocketClient : MonoBehaviour
@@ -28,7 +30,9 @@ public class WebSocketClient : MonoBehaviour
     public GameObject util;
 
     private bool started = false;
-    public async void Initiate(string Endpoint)
+
+    public lobbyController lobbycontroller; 
+    public async  void Initiate(string Endpoint)
     {   
         this.started = true;
         playerMap = new Dictionary<string, GameObject>();
@@ -85,6 +89,7 @@ public class WebSocketClient : MonoBehaviour
                 transform.position = newPosition;
                 this.GetComponent<Gameplay>().setName(pl.name);
                 playerMap.Add(this.selfId, this.gameObject);
+                lobbycontroller.addPlayerEntry(pl.name);
             }
             else if (pl.type == "new player")
             {
@@ -93,6 +98,7 @@ public class WebSocketClient : MonoBehaviour
                   pl.position[1], pl.position[2]), Quaternion.identity);
                 p.GetComponent<remoteGameplay>().selfId = pl.socketId;
                 p.GetComponent<remoteGameplay>().setLabel(pl.name);
+                lobbycontroller.addPlayerEntry(pl.name);
                 
                 playerMap.Add(pl.socketId, p);
                 Debug.Log("changing name from socket 1");
@@ -121,6 +127,8 @@ public class WebSocketClient : MonoBehaviour
                         obj.GetComponent<remoteGameplay>().addRat(pl.answer);
                     }
                 }
+            }else if(pl.type=="startGame"){
+                lobbycontroller.startGameRemoveUI();
             }
             Debug.Log("OnMessage! " + jsonString);
         };
@@ -199,7 +207,7 @@ public class WebSocketClient : MonoBehaviour
         }
     }
 
-    public void attachRat(string str){
+    public async void attachRat(string str){
         // this.GetComponent<WebSocketClient>().attachRat(obj.name);
          if (websocket.State == WebSocketState.Open)
         {
@@ -228,4 +236,33 @@ public class WebSocketClient : MonoBehaviour
             Debug.LogWarning("WebSocket is not open. Current state: " + websocket.State);
         }
     }
+
+    public  async void startHostedGame(string roomId)
+    {
+        if (websocket.State == WebSocketState.Open)
+        {
+            try
+            {
+                string jsonMessage = "{"
+                    + "\"socketId\": \"" + this.selfId + "\","
+                    + "\"type\": \"startGame\","
+                    + "\"position\": [],"  
+                    + "\"rotation\": null," 
+                    + "\"data\": \"" + roomId + "\","
+                    + "\"answer\": \"\"" 
+                    + "}";
+
+                websocket.SendText(jsonMessage);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Send error: {ex.Message}");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("WebSocket is not open. Current state: " + websocket.State);
+        }
+    }
+
 }

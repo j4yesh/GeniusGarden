@@ -4,7 +4,9 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 
 public class FloatingJoystick : Joystick
-{
+{       
+    private bool canTouch = false;
+
     protected override void Start()
     {
         base.Start();
@@ -12,15 +14,23 @@ public class FloatingJoystick : Joystick
     }
 
     public override void OnPointerDown(PointerEventData eventData)
-    {
-        background.anchoredPosition = ScreenPointToAnchoredPosition(eventData.position);
-        background.gameObject.SetActive(true);
-        base.OnPointerDown(eventData);
+    {   
+        if(canTouch){
+            background.anchoredPosition = ScreenPointToAnchoredPosition(eventData.position);
+            background.gameObject.SetActive(true);
+            base.OnPointerDown(eventData);
+        }
     }
 
     public override void OnPointerUp(PointerEventData eventData)
-    {
-        background.gameObject.SetActive(false);
-        base.OnPointerUp(eventData);
+    {   
+        if(canTouch){
+            background.gameObject.SetActive(false);
+            base.OnPointerUp(eventData);
+        }
+    }
+
+    public void SetActive(bool change){
+        this.canTouch = change;
     }
 }

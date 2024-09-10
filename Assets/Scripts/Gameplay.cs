@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 
 public class Gameplay : MonoBehaviour
 {   
+    public bool canTouch = false;
     public BoxCollider2D boundingBoxCollider; 
     public GameObject Head;
     private Vector2 startPos;
@@ -128,7 +129,7 @@ public class Gameplay : MonoBehaviour
 
     void OnTouchMove(Vector2 position)
     {
-        if (isTouching)
+        if (isTouching && canTouch)
         {
             float length = Mathf.Sqrt(__joystick.Direction.x * __joystick.Direction.x + 
             __joystick.Direction.y * __joystick.Direction.y);
