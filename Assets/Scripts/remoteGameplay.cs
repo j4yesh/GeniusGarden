@@ -52,6 +52,10 @@ public class remoteGameplay : MonoBehaviour
         playerLabel.GetComponent<playerLabel>().setName(str);
     }
 
+    public void setName(string str){
+        playerLabel.GetComponent<playerLabel>().setName(str);
+    }
+
     void Update()
     {
         // Vector2 newPosition = new Vector2(transform.position.x + movement.x * speed * Time.deltaTime,

@@ -1,5 +1,5 @@
 using UnityEngine;
-
+using UnityEngine.Rendering.PostProcessing;
 public class CameraFollow : MonoBehaviour
 {
     public Transform target;   
@@ -19,5 +19,10 @@ public class CameraFollow : MonoBehaviour
         desiredPosition.z = fixedZ;
 
         transform.position = desiredPosition;
+    }
+
+    public void setBlur(bool ppVolumeStatus){
+        PostProcessVolume ppVolume = this.gameObject.GetComponent<PostProcessVolume>();
+        ppVolume.enabled=ppVolumeStatus;
     }
 }

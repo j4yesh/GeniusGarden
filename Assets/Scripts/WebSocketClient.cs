@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using NativeWebSocket;
-
+using System.Text;
 
 [System.Serializable]
 public class payLoad
@@ -31,26 +31,33 @@ public class WebSocketClient : MonoBehaviour
 
     private bool started = false;
 
+    public Loading loading;
+
     public lobbyController lobbycontroller; 
     public async  void Initiate(string Endpoint)
     {   
+        loading.show();
         this.started = true;
         playerMap = new Dictionary<string, GameObject>();
         // websocket = new WebSocket("ws://localhost:8080/game/1e769");
         websocket = new WebSocket(Endpoint);
 
         websocket.OnOpen += () =>
-        {
+        {   
             Debug.Log("Connection open!");
+            this.setNameCall();
+            
         };
 
         websocket.OnError += (e) =>
         {
             Debug.Log("Error! " + e);
+            lobbycontroller.showError(e);
         };
 
         websocket.OnClose += (closeCode) =>
-        {
+        {   
+            // loading.hide();
             Debug.Log($"Connection closed with code: {closeCode}");
         };
 
@@ -89,7 +96,8 @@ public class WebSocketClient : MonoBehaviour
                 transform.position = newPosition;
                 this.GetComponent<Gameplay>().setName(pl.name);
                 playerMap.Add(this.selfId, this.gameObject);
-                lobbycontroller.addPlayerEntry(pl.name);
+                // lobbycontroller.addPlayerEntry(pl.name);
+                loading.hide();
             }
             else if (pl.type == "new player")
             {
@@ -98,9 +106,9 @@ public class WebSocketClient : MonoBehaviour
                   pl.position[1], pl.position[2]), Quaternion.identity);
                 p.GetComponent<remoteGameplay>().selfId = pl.socketId;
                 p.GetComponent<remoteGameplay>().setLabel(pl.name);
-                lobbycontroller.addPlayerEntry(pl.name);
-                
                 playerMap.Add(pl.socketId, p);
+                // lobbycontroller.addPlayerEntry(pl.name);
+                
                 Debug.Log("changing name from socket 1");
             }
             else if (pl.type == "leave player")
@@ -110,6 +118,7 @@ public class WebSocketClient : MonoBehaviour
                     playerMap[pl.socketId].GetComponent<remoteGameplay>().destoyFollowers();
                     Destroy(playerMap[pl.socketId]);
                     playerMap.Remove(pl.socketId);
+                    lobbycontroller.removeEntryFromBoard(pl.name);
                     // GameObject [] Rats = GameObject.FindGameObjectsWithTag("Rat");
                     // foreach(GameObject it in Rats){
                     //     if(it.GetComponent<Follower>().toFollowStr==pl.socketId){
@@ -129,6 +138,22 @@ public class WebSocketClient : MonoBehaviour
                 }
             }else if(pl.type=="startGame"){
                 lobbycontroller.startGameRemoveUI();
+            }else if(pl.type=="Error"){
+                loading.hide();
+                lobbycontroller.showError(pl.data);
+                
+            }else if(pl.type=="setName"){
+                Debug.Log("setName message received");
+                if(playerMap.ContainsKey(pl.socketId)){
+                //    lobbycontroller.addPlayerEntry(pl.name);
+                   if(pl.socketId == this.selfId){
+                        this.GetComponent<Gameplay>().setName(pl.data);
+                    }else{
+                        GameObject obj = playerMap[pl.socketId];
+                        obj.GetComponent<remoteGameplay>().setName(pl.data);
+                    }
+                    lobbycontroller.addPlayerEntry(pl.data);
+                }
             }
             Debug.Log("OnMessage! " + jsonString);
         };
@@ -138,10 +163,15 @@ public class WebSocketClient : MonoBehaviour
         try
         {
             await websocket.Connect();
+           
+            
+           
         }
         catch (Exception ex)
         {
             Debug.LogError($"Connection error: {ex.Message}");
+        }finally{
+
         }
 
         
@@ -190,7 +220,7 @@ public class WebSocketClient : MonoBehaviour
         }
     }
 
-    private async void OnApplicationQuit()
+    public async void OnApplicationQuit()
     {
         Debug.Log("Application quitting. Closing WebSocket...");
         if (websocket != null)
@@ -265,4 +295,34 @@ public class WebSocketClient : MonoBehaviour
         }
     }
 
+    public  async void setNameCall()
+    {
+        if (websocket.State == WebSocketState.Open)
+        {
+            try
+            {   
+                string username = lobbycontroller.username;
+
+                string jsonMessage = "{"
+                    + "\"socketId\": \"" + this.selfId + "\","
+                    + "\"type\": \"setName\","
+                    + "\"position\": [],"  
+                    + "\"rotation\": null," 
+                    + "\"data\": \"" + username + "\","
+                    + "\"answer\": \"\"" 
+                    + "}";
+
+                websocket.SendText(jsonMessage);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Send error: {ex.Message}");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("WebSocket is not open. Current state: " + websocket.State);
+        }
+    }
+     
 }

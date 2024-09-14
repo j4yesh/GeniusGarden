@@ -22,6 +22,7 @@ public class Loading : MonoBehaviour
     }
 
     public void hide(){
+        Debug.Log("loading is hided!");
         anim.Stop("circle_half_rotating_fading_6_1");
         image.enabled=false;
         anim.enabled=false;
