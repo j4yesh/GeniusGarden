@@ -18,7 +18,13 @@ public class payLoad
 
     public string data;
 }
-
+public class Result
+{
+    public int rank;
+    public string socketId;
+    public string name;
+    public List<string> ranking;
+}
 public class WebSocketClient : MonoBehaviour
 {
     WebSocket websocket;
@@ -33,9 +39,9 @@ public class WebSocketClient : MonoBehaviour
 
     public Loading loading;
 
-    public lobbyController lobbycontroller; 
-    public async  void Initiate(string Endpoint)
-    {   
+    public lobbyController lobbycontroller;
+    public async void Initiate(string Endpoint)
+    {
         loading.show();
         this.started = true;
         playerMap = new Dictionary<string, GameObject>();
@@ -43,10 +49,10 @@ public class WebSocketClient : MonoBehaviour
         websocket = new WebSocket(Endpoint);
 
         websocket.OnOpen += () =>
-        {   
+        {
             Debug.Log("Connection open!");
             this.setNameCall();
-            
+
         };
 
         websocket.OnError += (e) =>
@@ -56,105 +62,120 @@ public class WebSocketClient : MonoBehaviour
         };
 
         websocket.OnClose += (closeCode) =>
-        {   
+        {
             // loading.hide();
             Debug.Log($"Connection closed with code: {closeCode}");
         };
 
         websocket.OnMessage += (bytes) =>
         {
-
             var jsonString = System.Text.Encoding.UTF8.GetString(bytes);
-
             payLoad pl = JsonUtility.FromJson<payLoad>(jsonString);
-            if (pl.type == "position")
+            switch (pl.type)
             {
-                if (playerMap.ContainsKey(pl.socketId))
-                {
-                    GameObject obj = playerMap[pl.socketId];
-                    Vector3 newPosition = new Vector3(pl.position[0], pl.position[1], pl.position[2]);
-                    obj.transform.position = newPosition;
-                    Vector3 currentRotation = obj.transform.rotation.eulerAngles;
-                    currentRotation.z = pl.rotation;
-                    obj.transform.rotation = Quaternion.Euler(currentRotation);
-                }else{
-                    Debug.Log("Player not found in map");
-                }
-            }
-            else if(pl.type=="spawn rat"){
-                // new Vector3(this.headPos.position.x+Random.Range(4,-4),this.headPos.position.y+Random.Range(4,-4), 0)
-                util.GetComponent<Utility>().setQuestion(pl.question,pl.answer
-                ,new Vector3(pl.position[0],pl.position[1],pl.position[2]));
-            }else if(pl.type=="dummy rat"){
-                util.GetComponent<Utility>().spawnDummyRat(new Vector3(pl.position[0],pl.position[1],pl.position[2])
-                ,pl.answer);
-            }
-            else if (pl.type == "self id")
-            {
-                this.selfId = pl.socketId;
-                Vector3 newPosition = new Vector3(pl.position[0],pl.position[1],pl.position[2]);
-                transform.position = newPosition;
-                this.GetComponent<Gameplay>().setName(pl.name);
-                playerMap.Add(this.selfId, this.gameObject);
-                // lobbycontroller.addPlayerEntry(pl.name);
-                loading.hide();
-            }
-            else if (pl.type == "new player")
-            {
-                GameObject p = Instantiate(playerTemp,
-                  new Vector3(pl.position[0],
-                  pl.position[1], pl.position[2]), Quaternion.identity);
-                p.GetComponent<remoteGameplay>().selfId = pl.socketId;
-                p.GetComponent<remoteGameplay>().setLabel(pl.name);
-                playerMap.Add(pl.socketId, p);
-                // lobbycontroller.addPlayerEntry(pl.name);
-                
-                Debug.Log("changing name from socket 1");
-            }
-            else if (pl.type == "leave player")
-            {
-                if (playerMap.ContainsKey(pl.socketId))
-                {   
-                    playerMap[pl.socketId].GetComponent<remoteGameplay>().destoyFollowers();
-                    Destroy(playerMap[pl.socketId]);
-                    playerMap.Remove(pl.socketId);
-                    lobbycontroller.removeEntryFromBoard(pl.name);
-                    // GameObject [] Rats = GameObject.FindGameObjectsWithTag("Rat");
-                    // foreach(GameObject it in Rats){
-                    //     if(it.GetComponent<Follower>().toFollowStr==pl.socketId){
-                    //         Debug.Log("Destroy Call : "+pl.socketId);
-                    //         Destroy(it);
-                    //     }
-                    // }
-                }
-            }else if(pl.type == "addRat"){
-                if(playerMap.ContainsKey(pl.question)){
-                    if(pl.question == this.selfId){
-                        this.GetComponent<Gameplay>().addRat(pl.answer);
-                    }else{
-                        GameObject obj = playerMap[pl.question];
-                        obj.GetComponent<remoteGameplay>().addRat(pl.answer);
-                    }
-                }
-            }else if(pl.type=="startGame"){
-                lobbycontroller.startGameRemoveUI();
-            }else if(pl.type=="Error"){
-                loading.hide();
-                lobbycontroller.showError(pl.data);
-                
-            }else if(pl.type=="setName"){
-                Debug.Log("setName message received");
-                if(playerMap.ContainsKey(pl.socketId)){
-                //    lobbycontroller.addPlayerEntry(pl.name);
-                   if(pl.socketId == this.selfId){
-                        this.GetComponent<Gameplay>().setName(pl.data);
-                    }else{
+                case "position":
+                    if (playerMap.ContainsKey(pl.socketId))
+                    {
                         GameObject obj = playerMap[pl.socketId];
-                        obj.GetComponent<remoteGameplay>().setName(pl.data);
+                        Vector3 newPosition = new Vector3(pl.position[0], pl.position[1], pl.position[2]);
+                        obj.transform.position = newPosition;
+                        Vector3 currentRotation = obj.transform.rotation.eulerAngles;
+                        currentRotation.z = pl.rotation;
+                        obj.transform.rotation = Quaternion.Euler(currentRotation);
                     }
-                    lobbycontroller.addPlayerEntry(pl.data);
-                }
+                    else
+                    {
+                        Debug.Log("Player not found in map");
+                    }
+                    break;
+
+                case "spawn rat":
+                    util.GetComponent<Utility>().setQuestion(pl.question, pl.answer,
+                        new Vector3(pl.position[0], pl.position[1], pl.position[2]));
+                    break;
+
+                case "dummy rat":
+                    util.GetComponent<Utility>().spawnDummyRat(new Vector3(pl.position[0], pl.position[1], pl.position[2]), pl.answer);
+                    break;
+
+                case "self id":
+                    this.selfId = pl.socketId;
+                    Vector3 newSelfPosition = new Vector3(pl.position[0], pl.position[1], pl.position[2]);
+                    transform.position = newSelfPosition;
+                    this.GetComponent<Gameplay>().setName(pl.name);
+                    playerMap.Add(this.selfId, this.gameObject);
+                    loading.hide();
+                    break;
+
+                case "new player":
+                    GameObject p = Instantiate(playerTemp, new Vector3(pl.position[0], pl.position[1], pl.position[2]), Quaternion.identity);
+                    p.GetComponent<remoteGameplay>().selfId = pl.socketId;
+                    p.GetComponent<remoteGameplay>().setLabel(pl.name);
+                    playerMap.Add(pl.socketId, p);
+                    Debug.Log("changing name from socket 1");
+                    break;
+
+                case "leave player":
+                    if (playerMap.ContainsKey(pl.socketId))
+                    {
+                        playerMap[pl.socketId].GetComponent<remoteGameplay>().destoyFollowers();
+                        Destroy(playerMap[pl.socketId]);
+                        playerMap.Remove(pl.socketId);
+                        lobbycontroller.removeEntryFromBoard(pl.name);
+                    }
+                    break;
+
+                case "addRat":
+                    if (playerMap.ContainsKey(pl.question))
+                    {
+                        if (pl.question == this.selfId)
+                        {
+                            this.GetComponent<Gameplay>().addRat(pl.answer);
+                        }
+                        else
+                        {
+                            GameObject obj = playerMap[pl.question];
+                            obj.GetComponent<remoteGameplay>().addRat(pl.answer);
+                        }
+                    }
+                    break;
+
+                case "startGame":
+                    lobbycontroller.startGameRemoveUI();
+                    break;
+
+                case "Error":
+                    loading.hide();
+                    lobbycontroller.showError(pl.data);
+                    break;
+
+                case "setName":
+                    Debug.Log("setName message received");
+                    if (playerMap.ContainsKey(pl.socketId))
+                    {
+                        if (pl.socketId == this.selfId)
+                        {
+                            this.GetComponent<Gameplay>().setName(pl.data);
+                        }
+                        else
+                        {
+                            GameObject obj = playerMap[pl.socketId];
+                            obj.GetComponent<remoteGameplay>().setName(pl.data);
+                        }
+                        lobbycontroller.addPlayerEntry(pl.data);
+                    }
+                    break;
+
+                case "result":
+                    Result result = JsonUtility.FromJson<Result>(pl.data);
+                    lobbycontroller.showResult(result.ranking, result.rank);
+                    break;
+
+                default:
+                    Debug.Log("Message type not found: " + pl.type);
+                    break;
             }
+
             Debug.Log("OnMessage! " + jsonString);
         };
 
@@ -163,31 +184,36 @@ public class WebSocketClient : MonoBehaviour
         try
         {
             await websocket.Connect();
-           
-            
-           
+
+
+
         }
         catch (Exception ex)
         {
             Debug.LogError($"Connection error: {ex.Message}");
-        }finally{
+        }
+        finally
+        {
 
         }
 
-        
+
     }
 
-    
+
 
     void Update()
     {
-        try{
+        try
+        {
 
-#if  (!UNITY_WEBGL || UNITY_EDITOR)
-        websocket.DispatchMessageQueue();
+#if (!UNITY_WEBGL || UNITY_EDITOR)
+            websocket.DispatchMessageQueue();
 #endif
-        }catch{
-            
+        }
+        catch
+        {
+
         }
     }
 
@@ -206,7 +232,7 @@ public class WebSocketClient : MonoBehaviour
                 + "}";
 
 
-                 websocket.SendText(jsonMessage);
+                await websocket.SendText(jsonMessage);
 
             }
             catch (Exception ex)
@@ -237,23 +263,24 @@ public class WebSocketClient : MonoBehaviour
         }
     }
 
-    public async void attachRat(string str){
+    public async void attachRat(string str)
+    {
         // this.GetComponent<WebSocketClient>().attachRat(obj.name);
-         if (websocket.State == WebSocketState.Open)
+        if (websocket.State == WebSocketState.Open)
         {
             try
             {
                 string jsonMessage = "{"
                 + "\"socketId\": \"" + this.selfId + "\","
                 + "\"type\": \"addRat\","
-                + "\"position\": [" + this.playerPosition.position.x + ", " 
-                                    + this.playerPosition.position.y + ", " 
+                + "\"position\": [" + this.playerPosition.position.x + ", "
+                                    + this.playerPosition.position.y + ", "
                                     + this.playerPosition.position.z + "],"
                 + "\"rotation\": " + this.playerPosition.transform.rotation.eulerAngles.z + ","
                 + "\"answer\": \"" + str + "\""
                 + "}";
 
-                 websocket.SendText(jsonMessage);
+                await websocket.SendText(jsonMessage);
 
             }
             catch (Exception ex)
@@ -267,7 +294,7 @@ public class WebSocketClient : MonoBehaviour
         }
     }
 
-    public  async void startHostedGame(string roomId)
+    public async void startHostedGame(string roomId)
     {
         if (websocket.State == WebSocketState.Open)
         {
@@ -276,13 +303,13 @@ public class WebSocketClient : MonoBehaviour
                 string jsonMessage = "{"
                     + "\"socketId\": \"" + this.selfId + "\","
                     + "\"type\": \"startGame\","
-                    + "\"position\": [],"  
-                    + "\"rotation\": null," 
+                    + "\"position\": [],"
+                    + "\"rotation\": null,"
                     + "\"data\": \"" + roomId + "\","
-                    + "\"answer\": \"\"" 
+                    + "\"answer\": \"\""
                     + "}";
 
-                websocket.SendText(jsonMessage);
+                await websocket.SendText(jsonMessage);
             }
             catch (Exception ex)
             {
@@ -295,24 +322,24 @@ public class WebSocketClient : MonoBehaviour
         }
     }
 
-    public  async void setNameCall()
+    public async void setNameCall()
     {
         if (websocket.State == WebSocketState.Open)
         {
             try
-            {   
+            {
                 string username = lobbycontroller.username;
 
                 string jsonMessage = "{"
                     + "\"socketId\": \"" + this.selfId + "\","
                     + "\"type\": \"setName\","
-                    + "\"position\": [],"  
-                    + "\"rotation\": null," 
+                    + "\"position\": [],"
+                    + "\"rotation\": null,"
                     + "\"data\": \"" + username + "\","
-                    + "\"answer\": \"\"" 
+                    + "\"answer\": \"\""
                     + "}";
 
-                websocket.SendText(jsonMessage);
+                await websocket.SendText(jsonMessage);
             }
             catch (Exception ex)
             {
@@ -324,5 +351,5 @@ public class WebSocketClient : MonoBehaviour
             Debug.LogWarning("WebSocket is not open. Current state: " + websocket.State);
         }
     }
-     
+
 }

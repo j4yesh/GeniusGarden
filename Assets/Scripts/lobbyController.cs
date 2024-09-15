@@ -189,6 +189,24 @@ public class lobbyController : MonoBehaviour
 
     }
 
-    
+    public void showResult(List<string> ranking, int rank)
+    {   
+        camerafollow.setBlur(true);
+        GameObject resultObj = getChildByName(this.gameObject, "Result");
+        string star = (ranking.Count-rank+1).ToString() + "_star";
+        GameObject starObject = getChildByName(resultObj, star);
+        GameObject Board = getChildByName(resultObj, "BAGGY");
+
+        resultObj.SetActive(true);
+        starObject.SetActive(true);
+
+        for (int i = 0; i < ranking.Count; i++)
+        {
+            GameObject rankTextObj = Instantiate(PlayerEntryUI, Vector3.zero, Quaternion.identity);
+            rankTextObj.GetComponent<TextMeshProUGUI>().text = (ranking.Count - i).ToString() + " " + ranking[i];
+            rankTextObj.transform.SetParent(Board.transform, false);
+        }
+    }
+
     
 }
