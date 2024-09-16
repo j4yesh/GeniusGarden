@@ -40,6 +40,8 @@ public class WebSocketClient : MonoBehaviour
     public Loading loading;
 
     public lobbyController lobbycontroller;
+    public SoundEffect soundeffect;
+
     public async void Initiate(string Endpoint)
     {
         loading.show();
@@ -131,6 +133,8 @@ public class WebSocketClient : MonoBehaviour
                         if (pl.question == this.selfId)
                         {
                             this.GetComponent<Gameplay>().addRat(pl.answer);
+                            soundeffect.correctAnswer();
+                            util.GetComponent<Utility>().setGreen();
                         }
                         else
                         {
@@ -163,12 +167,27 @@ public class WebSocketClient : MonoBehaviour
                             obj.GetComponent<remoteGameplay>().setName(pl.data);
                         }
                         lobbycontroller.addPlayerEntry(pl.data);
+                        soundeffect.newPlayerEnter();
                     }
                     break;
 
                 case "result":
+                    soundeffect.result();
                     Result result = JsonUtility.FromJson<Result>(pl.data);
                     lobbycontroller.showResult(result.ranking, result.rank);
+                    break;
+                
+                case "removeRat":
+                    soundeffect.wrongAnswer();
+                    if(pl.socketId==this.selfId){
+                            this.GetComponent<Gameplay>().removeRat();
+                            util.GetComponent<Utility>().setRed();
+                    }else{
+                        if(playerMap.ContainsKey(pl.socketId)){
+                            GameObject player = playerMap[pl.socketId];
+                            player.GetComponent<remoteGameplay>().removeRat();
+                        }
+                    }
                     break;
 
                 default:
@@ -351,5 +370,35 @@ public class WebSocketClient : MonoBehaviour
             Debug.LogWarning("WebSocket is not open. Current state: " + websocket.State);
         }
     }
+
+    public async void removeRat()
+{
+    if (websocket.State == WebSocketState.Open)
+    {
+        try
+        {
+            string username = lobbycontroller.username;
+
+            string jsonMessage = "{"
+                + "\"socketId\": \"" + this.selfId + "\","
+                + "\"type\": \"removeRat\","
+                + "\"position\": [],"
+                + "\"rotation\": null,"
+                + "\"data\": \"\","
+                + "\"answer\": \"\""
+                + "}";
+
+            await websocket.SendText(jsonMessage);  // Send the message asynchronously
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"Send error: {ex.Message}");
+        }
+    }
+    else
+    {
+        Debug.LogWarning("WebSocket is not open. Current state: " + websocket.State);
+    }
+}
 
 }

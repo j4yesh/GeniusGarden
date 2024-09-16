@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 public class remoteGameplay : MonoBehaviour
 {
@@ -86,8 +87,11 @@ public class remoteGameplay : MonoBehaviour
         // }
     }
 
-    public void addRat(string str){
+     public void addRat(string str)
+    {
         GameObject obj = this.util.getNewRat(str);
+        obj.transform.localScale = Vector3.zero;
+        obj.transform.DOScale(10, 0.5f);
         obj.GetComponent<Follower>().toFollow = rear;
         rear = obj.transform;
         obj.tag = "Snake";
@@ -105,6 +109,22 @@ public class remoteGameplay : MonoBehaviour
         Destroy(playerLabel);
     }
 
+    public void removeRat()
+    {
+        Transform rat = rear;
+        
+        if (rat != null)
+        {
+            rat.DOScale(Vector3.zero, 0.5f) 
+                .OnComplete(() => 
+                {
+                    Destroy(rat.gameObject);
+                });
+            rear = rat.GetComponent<Follower>().toFollow;
+            rat.GetComponent<Follower>().toFollow = null;
+        }
+    }
+    
     
     
 }

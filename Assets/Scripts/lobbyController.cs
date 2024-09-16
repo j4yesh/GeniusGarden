@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.SceneManagement;
+using DG.Tweening;
+
 public class lobbyController : MonoBehaviour
 {
     private GameObject canvas1,HostCanvas,JoinCanvas;
@@ -15,7 +17,7 @@ public class lobbyController : MonoBehaviour
     public CameraFollow camerafollow;
 
     private string filePath;
-    
+    private Utility util;
     public GameObject Gameplay;
     public GameObject PlayerEntryUI ;
 
@@ -25,6 +27,8 @@ public class lobbyController : MonoBehaviour
     private string roomId = "";
 
     private Dictionary<string,List<GameObject>> playerInRoom;
+
+    public SoundEffect soundeffect;
     void Start()
     {   
         playerInRoom = new Dictionary<string, List<GameObject>>();
@@ -189,16 +193,45 @@ public class lobbyController : MonoBehaviour
 
     }
 
+
     public void showResult(List<string> ranking, int rank)
     {   
+        Gameplay.GetComponent<Gameplay>().canTouch=false;
         camerafollow.setBlur(true);
         GameObject resultObj = getChildByName(this.gameObject, "Result");
-        string star = (ranking.Count-rank+1).ToString() + "_star";
+        string star = "";
+
+        if (ranking.Count >= 1 && ranking[0] == username)
+        {
+            star = "3_star";
+        }
+        else if (ranking.Count >= 2 && ranking[1] == username)
+        {
+            star = "2_star";
+        }
+        else if (ranking.Count >= 3 && ranking[2] == username)
+        {
+            star = "1_star"; 
+        }
+        else
+        {
+            Debug.Log("ranking list overflow.");
+        }
+
         GameObject starObject = getChildByName(resultObj, star);
         GameObject Board = getChildByName(resultObj, "BAGGY");
 
+        // resultObj.Transform.position.y = 2080;
+
+        // resultObj.transform.DOMove(Vector3.zero, 0.5f).SetEase(Ease.OutBack);
+
+
         resultObj.SetActive(true);
-        starObject.SetActive(true);
+
+        starObject.transform.localScale = Vector3.zero; 
+        starObject.SetActive(true); 
+        starObject.transform.DOScale(Vector3.one, 1f).SetEase(Ease.OutBack);  
+
 
         for (int i = 0; i < ranking.Count; i++)
         {
@@ -207,6 +240,7 @@ public class lobbyController : MonoBehaviour
             rankTextObj.transform.SetParent(Board.transform, false);
         }
     }
+
 
     
 }

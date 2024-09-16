@@ -2,7 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Text.RegularExpressions;
-
+using TMPro;
+using DG.Tweening;
 public class Gameplay : MonoBehaviour
 {   
     public bool canTouch = false;
@@ -27,6 +28,8 @@ public class Gameplay : MonoBehaviour
     private GameObject playerLabel;
 
     public GameObject playerLabelTemp;
+
+    public SoundEffect soundeffect;
 
     async void Start()
     {
@@ -99,20 +102,45 @@ public class Gameplay : MonoBehaviour
                     Destroy(obj);
                     // obj.GetComponent<Follower>().toFollowStr=this.GetComponent<WebSocketClient>().selfId;
                     this.GetComponent<WebSocketClient>().attachRat(obj.name);
+                     GameObject num = getChildByName(Head,"num");
+                    num.GetComponent<TextMeshPro>().text = " :)";
                 }else{
                     Debug.Log("Wrong ans check once ");
+                    GameObject num = getChildByName(Head,"num");
+                    num.GetComponent<TextMeshPro>().text = " :(";
+                    this.GetComponent<WebSocketClient>().removeRat();
                     Destroy(obj);
                 }
             }
         }
     }
 
-    public void addRat(string str){
-        GameObject obj = this.util.getNewRat(str);
-        obj.GetComponent<Follower>().toFollow = rear;
-        rear = obj.transform;
-        obj.tag = "Snake";
+ public void addRat(string str)
+{
+    GameObject obj = this.util.getNewRat(str);
+    obj.transform.localScale = Vector3.zero;
+    obj.transform.DOScale(10, 1f);
+    obj.GetComponent<Follower>().toFollow = rear;
+    rear = obj.transform;
+    obj.tag = "Snake";
+}
+
+    public void removeRat()
+    {
+        Transform rat = rear;
+        
+        if (rat.GetComponent<Follower>())
+        {
+            rat.DOScale(Vector3.zero, 0.5f) 
+                .OnComplete(() => 
+                {
+                    Destroy(rat.gameObject);
+                });
+            rear = rat.GetComponent<Follower>().toFollow;
+            rat.GetComponent<Follower>().toFollow = null;
+        }
     }
+
 
     Vector2 GetCenteredPosition(Vector2 position)
     {
@@ -162,7 +190,11 @@ public class Gameplay : MonoBehaviour
         Head.transform.position = new Vector3(newPosition.x, newPosition.y, Head.transform.position.z);
     }
 
-    
+    private GameObject getChildByName(GameObject Parent,string child){
+        return Parent.transform.Find(child)?.gameObject;
+    }
+
+   
     
 
 }

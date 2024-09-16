@@ -107,8 +107,16 @@ public class Utility : MonoBehaviour
         this.curAnswer = answer;
 
         questionBoard.GetComponent<TextMeshProUGUI>().text = question;
+        questionBoard.GetComponent<TextMeshProUGUI>().color = Color.red;
+
+         questionBoard.GetComponent<TextMeshProUGUI>().enableVertexGradient = false;
+        
+        questionBoard.GetComponent<TextMeshProUGUI>().fontMaterial.SetColor(ShaderUtilities.ID_GlowColor, Color.clear); 
+        questionBoard.GetComponent<TextMeshProUGUI>().fontMaterial.SetFloat(ShaderUtilities.ID_GlowPower, 0.0f);
 
         GameObject newIns = Instantiate(ratTemplate, pos, Quaternion.identity);
+
+
 
         // new Vector3(this.headPos.position.x+Random.Range(4,-4),this.headPos.position.y+Random.Range(4,-4), 0)
 
@@ -146,7 +154,39 @@ public class Utility : MonoBehaviour
             }
         }
     }
+   public void setRed()
+    {
+        TextMeshProUGUI textMeshPro = questionBoard.GetComponent<TextMeshProUGUI>();
+        
+        if (textMeshPro != null)
+        {
+            textMeshPro.color = Color.red;
+            
+            textMeshPro.enableVertexGradient = true;
+            textMeshPro.fontMaterial.SetColor(ShaderUtilities.ID_GlowColor, Color.red);
+            textMeshPro.fontMaterial.SetFloat(ShaderUtilities.ID_GlowPower, 0.5f); 
+            
+        }
+    }
 
+    public void setGreen(){
+        TextMeshProUGUI textMeshPro = questionBoard.GetComponent<TextMeshProUGUI>();
+        
+        if (textMeshPro != null)
+        {
+            textMeshPro.color = Color.green;
+            
+            textMeshPro.enableVertexGradient = true;
+            textMeshPro.fontMaterial.SetColor(ShaderUtilities.ID_GlowColor, Color.red);
+            textMeshPro.fontMaterial.SetFloat(ShaderUtilities.ID_GlowPower, 0.5f); 
+        }
+    }
+
+    public static int Floor(double value)
+    {
+        int truncated = (int)value; 
+        return (value < truncated) ? truncated - 1 : truncated;
+    }
 
 }
 
