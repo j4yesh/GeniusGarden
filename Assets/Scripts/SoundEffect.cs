@@ -1,11 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 public class SoundEffect : MonoBehaviour
 {
     private AudioSource audiosource; 
-    public AudioClip clickSound, correctAnswerSound, wrongAnswerSound, newPlayerEnterSound, resultSound;
+    public AudioClip clickSound, correctAnswerSound, wrongAnswerSound, newPlayerEnterSound, resultSound,
+                     tryAgainSound;
 
     void Start()
     {
@@ -22,10 +24,23 @@ public class SoundEffect : MonoBehaviour
         PlaySound(correctAnswerSound);
     }
 
-    public void wrongAnswer()
-    {
-        PlaySound(wrongAnswerSound);
+   public void wrongAnswer()
+    {   
+        int ri = Random.Range(0, 5);  
+
+        if (ri >= 1)
+        {
+            PlaySound(wrongAnswerSound);
+            DOVirtual.DelayedCall(wrongAnswerSound.length, () => {
+                PlaySound(tryAgainSound);
+            });
+        }
+        else
+        {
+            PlaySound(wrongAnswerSound);
+        }
     }
+
 
     public void newPlayerEnter()
     {

@@ -6,6 +6,14 @@ using NativeWebSocket;
 using System.Text;
 
 [System.Serializable]
+public class StringListWrapper
+{  
+    //JsonUtility.FromJson<T>(). It doesn't work with generic types like
+    // List<T> directly because JsonUtility only supports serializing and deserializing classes, not collections like List<string>.
+    public List<string> list;
+}
+
+[System.Serializable]
 public class payLoad
 {
     public string socketId;
@@ -141,6 +149,10 @@ public class WebSocketClient : MonoBehaviour
                             GameObject obj = playerMap[pl.question];
                             obj.GetComponent<remoteGameplay>().addRat(pl.answer);
                         }
+                        string jsonData = "{\"list\":" + pl.data + "}";
+                        StringListWrapper wrapper = JsonUtility.FromJson<StringListWrapper>(jsonData);
+                        List<string> plRanking = wrapper.list;
+                        lobbycontroller.realtimeGameRanking(plRanking);
                     }
                     break;
 

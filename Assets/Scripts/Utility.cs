@@ -43,8 +43,8 @@ public class Utility : MonoBehaviour
     }
 
     public bool tryToAnswer(string ans)
-    {
-        return this.curAnswer == ans;
+    {   
+        return this.curAnswer==ans;
     }
 
     public void generateQuestion()
@@ -107,7 +107,7 @@ public class Utility : MonoBehaviour
         this.curAnswer = answer;
 
         questionBoard.GetComponent<TextMeshProUGUI>().text = question;
-        questionBoard.GetComponent<TextMeshProUGUI>().color = Color.red;
+        questionBoard.GetComponent<TextMeshProUGUI>().color = Color.white;
 
          questionBoard.GetComponent<TextMeshProUGUI>().enableVertexGradient = false;
         
@@ -150,7 +150,9 @@ public class Utility : MonoBehaviour
             }
             if (obj)
             {
-                obj.transform.DOScale(10f, 0.5f);
+                    Destroy(obj);
+                // obj.transform.DOScale(10f, 0.1f).OnComplete(()=>{
+                // });
             }
         }
     }
@@ -164,7 +166,7 @@ public class Utility : MonoBehaviour
             
             textMeshPro.enableVertexGradient = true;
             textMeshPro.fontMaterial.SetColor(ShaderUtilities.ID_GlowColor, Color.red);
-            textMeshPro.fontMaterial.SetFloat(ShaderUtilities.ID_GlowPower, 0.5f); 
+            textMeshPro.fontMaterial.SetFloat(ShaderUtilities.ID_GlowPower, 100f); 
             
         }
     }
@@ -173,7 +175,12 @@ public class Utility : MonoBehaviour
         TextMeshProUGUI textMeshPro = questionBoard.GetComponent<TextMeshProUGUI>();
         
         if (textMeshPro != null)
-        {
+        {   
+            textMeshPro.text = textMeshPro.text.Substring(0, textMeshPro.text.Length - 1);
+            textMeshPro.text += this.curAnswer;
+
+          
+
             textMeshPro.color = Color.green;
             
             textMeshPro.enableVertexGradient = true;

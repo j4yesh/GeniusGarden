@@ -87,7 +87,8 @@ public class Gameplay : MonoBehaviour
         newPosition.y > bottomLeft.y && newPosition.y < topRight.y)
         {
             SetPosition(newPosition);
-
+        }else{
+                    this.GetComponent<WebSocketClient>().removeRat();
         }
         
         foreach (GameObject obj in  GameObject.FindGameObjectsWithTag("Rat"))
@@ -102,12 +103,9 @@ public class Gameplay : MonoBehaviour
                     Destroy(obj);
                     // obj.GetComponent<Follower>().toFollowStr=this.GetComponent<WebSocketClient>().selfId;
                     this.GetComponent<WebSocketClient>().attachRat(obj.name);
-                     GameObject num = getChildByName(Head,"num");
-                    num.GetComponent<TextMeshPro>().text = " :)";
+                  
                 }else{
                     Debug.Log("Wrong ans check once ");
-                    GameObject num = getChildByName(Head,"num");
-                    num.GetComponent<TextMeshPro>().text = " :(";
                     this.GetComponent<WebSocketClient>().removeRat();
                     Destroy(obj);
                 }
@@ -116,10 +114,13 @@ public class Gameplay : MonoBehaviour
     }
 
  public void addRat(string str)
-{
+{   
+       GameObject num = getChildByName(Head,"num");
+                    num.GetComponent<TextMeshPro>().text = " :)";
     GameObject obj = this.util.getNewRat(str);
     obj.transform.localScale = Vector3.zero;
-    obj.transform.DOScale(10, 1f);
+    obj.transform.DOScale(10, 1f).OnComplete(() => {
+    });
     obj.GetComponent<Follower>().toFollow = rear;
     rear = obj.transform;
     obj.tag = "Snake";
@@ -128,9 +129,12 @@ public class Gameplay : MonoBehaviour
     public void removeRat()
     {
         Transform rat = rear;
+            GameObject num = getChildByName(Head,"num");
+                    num.GetComponent<TextMeshPro>().text = " :(";
+                    
         
         if (rat.GetComponent<Follower>())
-        {
+        {   
             rat.DOScale(Vector3.zero, 0.5f) 
                 .OnComplete(() => 
                 {

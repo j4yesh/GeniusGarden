@@ -29,6 +29,8 @@ public class lobbyController : MonoBehaviour
     private Dictionary<string,List<GameObject>> playerInRoom;
 
     public SoundEffect soundeffect;
+
+    public GameObject realtimeNameTemp;
     void Start()
     {   
         playerInRoom = new Dictionary<string, List<GameObject>>();
@@ -238,6 +240,45 @@ public class lobbyController : MonoBehaviour
             GameObject rankTextObj = Instantiate(PlayerEntryUI, Vector3.zero, Quaternion.identity);
             rankTextObj.GetComponent<TextMeshProUGUI>().text = (ranking.Count - i).ToString() + " " + ranking[i];
             rankTextObj.transform.SetParent(Board.transform, false);
+        }
+    }
+
+    public void realtimeGameRanking(List<string> rankingList)
+    {
+        if (rankingList == null || rankingList.Count == 0)
+        {
+            Debug.LogWarning("Ranking List is empty or null");
+            return;
+        }
+
+        Debug.Log("Ranking List called: " + rankingList[0]);
+
+        // Get the ranking object
+        GameObject rankingObj = getChildByName(this.gameObject, "Ranking");
+
+        // Clear the current ranking children
+        foreach (Transform child in rankingObj.transform)
+        {
+            if(child.gameObject.tag!="playerLabel")Destroy(child.gameObject);
+        }
+
+        // Create new ranking based on the list
+        for (int i = 0; i < rankingList.Count; i++)
+        {
+            GameObject singleRank = Instantiate(realtimeNameTemp, rankingObj.transform);
+            singleRank.tag="Snake";
+            // Set the TextMeshPro for the rank
+            TextMeshProUGUI textmeshpro = singleRank.GetComponentInChildren<TextMeshProUGUI>();
+
+            if (textmeshpro != null)
+            {
+                textmeshpro.text = " " + (i + 1).ToString() + ". " + rankingList[i];
+                Debug.Log("TextMeshPro ranking: " + textmeshpro.text);
+            }
+            else
+            {
+                Debug.LogError("TextMeshPro component not found in singleRank");
+            }
         }
     }
 
