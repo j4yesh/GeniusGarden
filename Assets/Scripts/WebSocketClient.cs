@@ -83,12 +83,13 @@ public class WebSocketClient : MonoBehaviour
             payLoad pl = JsonUtility.FromJson<payLoad>(jsonString);
             switch (pl.type)
             {
-                case "position":
+               case "position":
                     if (playerMap.ContainsKey(pl.socketId))
                     {
                         GameObject obj = playerMap[pl.socketId];
                         Vector3 newPosition = new Vector3(pl.position[0], pl.position[1], pl.position[2]);
                         obj.transform.position = newPosition;
+
                         Vector3 currentRotation = obj.transform.rotation.eulerAngles;
                         currentRotation.z = pl.rotation;
                         obj.transform.rotation = Quaternion.Euler(currentRotation);
@@ -97,11 +98,16 @@ public class WebSocketClient : MonoBehaviour
                     {
                         Debug.Log("Player not found in map");
                     }
+
                     break;
 
                 case "spawn rat":
-                    util.GetComponent<Utility>().setQuestion(pl.question, pl.answer,
-                        new Vector3(pl.position[0], pl.position[1], pl.position[2]));
+                    if(pl.socketId==this.selfId){
+                        util.GetComponent<Utility>().setQuestion(pl.question, pl.answer,
+                            new Vector3(pl.position[0], pl.position[1], pl.position[2]));
+                    }else{
+                    util.GetComponent<Utility>().spawnDummyRat(new Vector3(pl.position[0], pl.position[1], pl.position[2]), pl.answer);
+                    }
                     break;
 
                 case "dummy rat":
@@ -111,9 +117,9 @@ public class WebSocketClient : MonoBehaviour
                 case "self id":
                     this.selfId = pl.socketId;
                     Vector3 newSelfPosition = new Vector3(pl.position[0], pl.position[1], pl.position[2]);
-                    transform.position = newSelfPosition;
+                    this.GetComponent<Gameplay>().SetPosition(new Vector2(newSelfPosition.x,newSelfPosition.y));
                     this.GetComponent<Gameplay>().setName(pl.name);
-                    playerMap.Add(this.selfId, this.gameObject);
+                    playerMap.Add(this.selfId, this.GetComponent<Gameplay>().Head);
                     loading.hide();
                     break;
 
@@ -149,6 +155,7 @@ public class WebSocketClient : MonoBehaviour
                             GameObject obj = playerMap[pl.question];
                             obj.GetComponent<remoteGameplay>().addRat(pl.answer);
                         }
+                        util.GetComponent<Utility>().removeRatFromArena(pl.answer);
                         string jsonData = "{\"list\":" + pl.data + "}";
                         StringListWrapper wrapper = JsonUtility.FromJson<StringListWrapper>(jsonData);
                         List<string> plRanking = wrapper.list;
@@ -190,8 +197,8 @@ public class WebSocketClient : MonoBehaviour
                     break;
                 
                 case "removeRat":
-                    soundeffect.wrongAnswer();
                     if(pl.socketId==this.selfId){
+                            soundeffect.wrongAnswer();
                             this.GetComponent<Gameplay>().removeRat();
                             util.GetComponent<Utility>().setRed();
                     }else{
@@ -200,6 +207,9 @@ public class WebSocketClient : MonoBehaviour
                             player.GetComponent<remoteGameplay>().removeRat();
                         }
                     }
+                    break;
+                case "removeRatFromArena": 
+                    util.GetComponent<Utility>().removeRatFromArena(pl.answer);
                     break;
 
                 default:
@@ -210,7 +220,7 @@ public class WebSocketClient : MonoBehaviour
             Debug.Log("OnMessage! " + jsonString);
         };
 
-        InvokeRepeating("SendWebSocketMessage", 0.0f, 0.01f);
+        // InvokeRepeating("SendWebSocketMessage", 0.0f, 0.01f);
 
         try
         {
@@ -248,7 +258,7 @@ public class WebSocketClient : MonoBehaviour
         }
     }
 
-    async void SendWebSocketMessage()
+    public async void SendWebSocketMessage(float moveX,float moveY)
     {
         if (websocket.State == WebSocketState.Open)
         {
@@ -257,8 +267,8 @@ public class WebSocketClient : MonoBehaviour
                 string jsonMessage = "{"
                 + "\"socketId\": \"" + this.selfId + "\","
                 + "\"type\": \"position\","
-                + "\"position\": [" + this.playerPosition.position.x + ", " +
-                this.playerPosition.position.y + ", " + this.playerPosition.position.z + "],"
+                + "\"position\": [" + moveX + ", " +
+                moveY + ", " + "0" + "],"
                 + "\"rotation\": " + this.playerPosition.transform.rotation.eulerAngles.z
                 + "}";
 

@@ -46,7 +46,8 @@ public class lobbyController : MonoBehaviour
         __joystick.SetActive(false);
         Debug.Log(env.API_URL);
         camerafollow.setBlur(true);
-        selfUsername.text = GenerateRandomEndpoint();
+        this.LoadData();
+        // selfUsername.text = GenerateRandomEndpoint();
     }
 
     void Update()
@@ -121,6 +122,7 @@ public class lobbyController : MonoBehaviour
 
     public void setUsername(){
         this.username = selfUsername.text;
+        SaveData();
     }
 
     public void setjoinRoomId(){
@@ -203,15 +205,15 @@ public class lobbyController : MonoBehaviour
         GameObject resultObj = getChildByName(this.gameObject, "Result");
         string star = "";
 
-        if (ranking.Count >= 1 && ranking[0] == username)
+        if (rank==1)
         {
             star = "3_star";
         }
-        else if (ranking.Count >= 2 && ranking[1] == username)
+        else if (rank==2)
         {
             star = "2_star";
         }
-        else if (ranking.Count >= 3 && ranking[2] == username)
+        else if (rank==3)
         {
             star = "1_star"; 
         }
@@ -282,6 +284,33 @@ public class lobbyController : MonoBehaviour
         }
     }
 
+    public void Settings(){
+        GameObject settingObj = getChildByName(this.gameObject,"Setting");
+        GameObject menuObj = getChildByName(this.gameObject,"1");
+        menuObj.SetActive(false);
+        settingObj.SetActive(true);
 
+    }
+
+    public void BackFromSetting(){
+        GameObject settingObj = getChildByName(this.gameObject,"Setting");
+         GameObject menuObj = getChildByName(this.gameObject,"1");
+        menuObj.SetActive(true);
+        settingObj.SetActive(false);
+    }
+
+    void SaveData(){
+        SaveData saveData = new SaveData();
+        saveData.username = this.username;
+        SaveManager.SaveGameState(saveData);
+    }
+
+    void LoadData(){
+        SaveData saveData = SaveManager.LoadGameState();
+        if(saveData!=null){
+            this.username = saveData.username;
+            selfUsername.text = this.username;
+        }
+    }
     
 }

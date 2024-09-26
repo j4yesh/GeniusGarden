@@ -41,8 +41,8 @@ public class remoteGameplay : MonoBehaviour
         // playerLabel.GetComponent<playerLabel>().attach(this.gameObject);
         // playerLabel.GetComponent<playerLabel>().setName("...");
 
-        rear = transform;
         followers = new List<GameObject>();
+        rear = transform;
     }
 
     public void setLabel(string str){
@@ -110,20 +110,22 @@ public class remoteGameplay : MonoBehaviour
     }
 
     public void removeRat()
-    {
+    {   
         Transform rat = rear;
         
-        if (rat != null)
+        if (rat.GetComponent<Follower>())
         {
+            rear = rat.GetComponent<Follower>().toFollow;
             rat.DOScale(Vector3.zero, 0.5f) 
                 .OnComplete(() => 
                 {
                     Destroy(rat.gameObject);
                 });
-            rear = rat.GetComponent<Follower>().toFollow;
             rat.GetComponent<Follower>().toFollow = null;
         }
     }
+
+    
     
     
     

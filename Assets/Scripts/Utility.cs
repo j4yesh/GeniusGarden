@@ -6,6 +6,7 @@ using DG.Tweening;
 public class Utility : MonoBehaviour
 {
 
+    public Dictionary<string,GameObject>ratTracker;
     private Color[] preColor = {
         new Color(1f, 0.4f, 0.4f),  // Bright Red
         new Color(0.4f, 1f, 0.4f),  // Bright Green
@@ -29,6 +30,7 @@ public class Utility : MonoBehaviour
     public Transform headPos = null;
 
     void onLoad(){
+
     }
 
     void Start()
@@ -38,7 +40,7 @@ public class Utility : MonoBehaviour
         {
             Rats[i % preColor.Length].GetComponent<SpriteRenderer>().color = preColor[i % preColor.Length];
         }
-
+        ratTracker = new Dictionary<string, GameObject>();
         // generateQuestion();
     }
 
@@ -89,6 +91,7 @@ public class Utility : MonoBehaviour
         GameObject rat = Instantiate(ratTemplate, new Vector3(), Quaternion.identity);
         rat.GetComponent<SpriteRenderer>().color = this.preColor[Random.Range(0, 9)];
         rat.name = str;
+        // ratTracker.Add(str,rat);
         return rat;
     }
 
@@ -98,7 +101,9 @@ public class Utility : MonoBehaviour
 
         dummy.name = dummyAns;
         dummy.GetComponent<SpriteRenderer>().color = this.preColor[Random.Range(0, 9)];
-        StartCoroutine(this.DestroyRat(dummy));
+        ratTracker[dummyAns]=dummy;
+
+        StartCoroutine(this.DestroyRat(dummy,dummyAns));
     }
 
     public void setQuestion(string question, string answer, Vector3 pos)
@@ -123,9 +128,10 @@ public class Utility : MonoBehaviour
         newIns.name = answer;
         newIns.GetComponent<Follower>().setNumber(answer);
         newIns.GetComponent<SpriteRenderer>().color = this.preColor[Random.Range(0, 9)];
-        StartCoroutine(this.DestroyRat(newIns));
+        ratTracker[answer]=newIns;
+        StartCoroutine(this.DestroyRat(newIns,answer));
     }
-    public IEnumerator DestroyRat(GameObject obj)
+    public IEnumerator DestroyRat(GameObject obj,string key)
     {
         yield return new WaitForSeconds(2);
         Tween scaleTween = null;
@@ -140,6 +146,7 @@ public class Utility : MonoBehaviour
             {
                 scaleTween.Kill();
             }
+            ratTracker.Remove(key);
             Destroy(obj);
         }
         else
@@ -150,6 +157,7 @@ public class Utility : MonoBehaviour
             }
             if (obj)
             {
+                    ratTracker.Remove(key);
                     Destroy(obj);
                 // obj.transform.DOScale(10f, 0.1f).OnComplete(()=>{
                 // });
@@ -193,6 +201,16 @@ public class Utility : MonoBehaviour
     {
         int truncated = (int)value; 
         return (value < truncated) ? truncated - 1 : truncated;
+    }
+
+    public void removeRatFromArena(string key){
+        if(ratTracker.ContainsKey(key)){
+            Destroy(ratTracker[key]);
+            ratTracker.Remove(key);
+        }else{
+            Debug.Log("key not found but destroy called");
+        }
+        
     }
 
 }

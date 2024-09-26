@@ -81,36 +81,36 @@ public class Gameplay : MonoBehaviour
             OnTouchEnd(GetCenteredPosition(Input.mousePosition));
         }
 
-        Vector2 newPosition = new Vector2(Head.transform.position.x + movement.x * speed * Time.deltaTime,
-                                          Head.transform.position.y + movement.y * speed * Time.deltaTime);
-        if (newPosition.x > bottomLeft.x && newPosition.x < topRight.x &&
-        newPosition.y > bottomLeft.y && newPosition.y < topRight.y)
-        {
-            SetPosition(newPosition);
-        }else{
-                    this.GetComponent<WebSocketClient>().removeRat();
-        }
+        // Vector2 newPosition = new Vector2(Head.transform.position.x + movement.x * speed * Time.deltaTime,
+        //                                   Head.transform.position.y + movement.y * speed * Time.deltaTime);
+        // if (newPosition.x > bottomLeft.x && newPosition.x < topRight.x &&
+        // newPosition.y > bottomLeft.y && newPosition.y < topRight.y)
+        // {
+        //     SetPosition(newPosition);
+        // }else{
+        //             this.GetComponent<WebSocketClient>().removeRat();
+        // }
         
-        foreach (GameObject obj in  GameObject.FindGameObjectsWithTag("Rat"))
-        {
-            if (boundingBoxCollider.bounds.Contains(obj.transform.position))
-            {   
-                if(util.tryToAnswer(obj.name)){
-                    Debug.Log("Object within bounding box: " + obj.name);
-                    // obj.GetComponent<Follower>().toFollow = rear;
-                    // rear = obj.transform;
-                    obj.tag = "Snake";
-                    Destroy(obj);
-                    // obj.GetComponent<Follower>().toFollowStr=this.GetComponent<WebSocketClient>().selfId;
-                    this.GetComponent<WebSocketClient>().attachRat(obj.name);
+        // foreach (GameObject obj in  GameObject.FindGameObjectsWithTag("Rat"))
+        // {
+        //     if (boundingBoxCollider.bounds.Contains(obj.transform.position))
+        //     {   
+        //         if(util.tryToAnswer(obj.name)){
+        //             Debug.Log("Object within bounding box: " + obj.name);
+        //             // obj.GetComponent<Follower>().toFollow = rear;
+        //             // rear = obj.transform;
+        //             obj.tag = "Snake";
+        //             Destroy(obj);
+        //             // obj.GetComponent<Follower>().toFollowStr=this.GetComponent<WebSocketClient>().selfId;
+        //             this.GetComponent<WebSocketClient>().attachRat(obj.name);
                   
-                }else{
-                    Debug.Log("Wrong ans check once ");
-                    this.GetComponent<WebSocketClient>().removeRat();
-                    Destroy(obj);
-                }
-            }
-        }
+        //         }else{
+        //             Debug.Log("Wrong ans check once ");
+        //             this.GetComponent<WebSocketClient>().removeRat();
+        //             Destroy(obj);
+        //         }
+        //     }
+        // }
     }
 
  public void addRat(string str)
@@ -135,12 +135,12 @@ public class Gameplay : MonoBehaviour
         
         if (rat.GetComponent<Follower>())
         {   
+            rear = rat.GetComponent<Follower>().toFollow;
             rat.DOScale(Vector3.zero, 0.5f) 
                 .OnComplete(() => 
                 {
                     Destroy(rat.gameObject);
                 });
-            rear = rat.GetComponent<Follower>().toFollow;
             rat.GetComponent<Follower>().toFollow = null;
         }
     }
@@ -173,12 +173,13 @@ public class Gameplay : MonoBehaviour
 
                 movement.x = movement.x / length;
                 movement.y = movement.y / length;
-                float angle = Mathf.Atan2(movement.y, movement.x);
+                // float angle = Mathf.Atan2(movement.y, movement.x);
 
-                float angleInDegrees = angle * Mathf.Rad2Deg;
+                // float angleInDegrees = angle * Mathf.Rad2Deg;
 
-                Head.transform.rotation = Quaternion.Euler(0, 0, angleInDegrees);
+                // Head.transform.rotation = Quaternion.Euler(0, 0, angleInDegrees);
                 
+                this.GetComponent<WebSocketClient>().SendWebSocketMessage(movement.x , movement.y);
             }
             
         }
