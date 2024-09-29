@@ -6,6 +6,8 @@ using UnityEngine;
 public class SaveData 
 {
     public string username;
-    
+    public bool sfxAllowed;
+
+    public bool bgmAllowed;
 
 }
