@@ -32,9 +32,11 @@ public class lobbyController : MonoBehaviour
 
     public SoundEffect soundeffect;
 
+    public string gameState;
     public GameObject realtimeNameTemp;
     void Start()
-    {
+    {   
+        this.gameState="menu";
         playerInRoom = new Dictionary<string, List<GameObject>>();
         canvas1 = transform.Find("1")?.gameObject;
         HostCanvas = transform.Find("HostCanvas")?.gameObject;
@@ -52,9 +54,6 @@ public class lobbyController : MonoBehaviour
         // selfUsername.text = GenerateRandomEndpoint();
     }
 
-    void Update()
-    {
-    }
 
     public void hostGame()
     {
@@ -153,7 +152,7 @@ public class lobbyController : MonoBehaviour
         return result.ToString();
     }
 
-    private GameObject getChildByName(GameObject Parent, string child)
+    public static GameObject getChildByName(GameObject Parent, string child)
     {
         return Parent.transform.Find(child)?.gameObject;
     }
@@ -164,7 +163,13 @@ public class lobbyController : MonoBehaviour
     }
 
     public void startGameRemoveUI()
-    {
+    {   
+        GameObject settingIcon = getChildByName(this.gameObject, "SettingIcon");
+        settingIcon.SetActive(true);
+        GameObject exitIcon = getChildByName(this.gameObject, "ExitIcon");
+        exitIcon.SetActive(true);
+
+        this.gameState="gameplay";
         HostCanvas.SetActive(false);
         GameObject joinCanvas1 = getChildByName(this.gameObject, "JoinCanvas1");
         joinCanvas1.SetActive(false);
@@ -172,6 +177,8 @@ public class lobbyController : MonoBehaviour
         Gameplay.GetComponent<Gameplay>().canTouch = true;
         __joystick.SetActive(true);
         camerafollow.setBlur(false);
+
+        
     }
 
     public void playPublicRoom()
@@ -215,8 +222,13 @@ public class lobbyController : MonoBehaviour
 
 
     public void showResult(List<string> ranking, int rank)
-    {
-        Gameplay.GetComponent<Gameplay>().canTouch = false;
+    {   
+        GameObject settingIcon = getChildByName(this.gameObject, "SettingIcon");
+        settingIcon.SetActive(false);
+        GameObject exitIcon = getChildByName(this.gameObject, "ExitIcon");
+        exitIcon.SetActive(false);
+
+        Gameplay.GetComponent<Gameplay>().canTouch = false; 
         camerafollow.setBlur(true);
         GameObject resultObj = getChildByName(this.gameObject, "Result");
         string star = "";
@@ -271,16 +283,13 @@ public class lobbyController : MonoBehaviour
 
         Debug.Log("Ranking List called: " + rankingList[0]);
 
-        // Get the ranking object
         GameObject rankingObj = getChildByName(this.gameObject, "Ranking");
 
-        // Clear the current ranking children
         foreach (Transform child in rankingObj.transform)
         {
             if (child.gameObject.tag != "playerLabel") Destroy(child.gameObject);
         }
 
-        // Create new ranking based on the list
         for (int i = 0; i < rankingList.Count; i++)
         {
             GameObject singleRank = Instantiate(realtimeNameTemp, rankingObj.transform);
@@ -301,7 +310,8 @@ public class lobbyController : MonoBehaviour
     }
 
     public void Settings()
-    {
+    {   
+        Gameplay.GetComponent<Gameplay>().canTouch=false;
         GameObject settingObj = getChildByName(this.gameObject, "Setting");
         GameObject menuObj = getChildByName(this.gameObject, "1");
         menuObj.SetActive(false);
@@ -309,13 +319,6 @@ public class lobbyController : MonoBehaviour
 
     }
 
-    public void BackFromSetting()
-    {
-        GameObject settingObj = getChildByName(this.gameObject, "Setting");
-        GameObject menuObj = getChildByName(this.gameObject, "1");
-        menuObj.SetActive(true);
-        settingObj.SetActive(false);
-    }
 
     void SaveData()
     {
@@ -330,35 +333,23 @@ public class lobbyController : MonoBehaviour
         if (saveData != null)
         {
             this.username = saveData.username;
-            if (selfUsername != null)
-            {
                 selfUsername.text = this.username;
-            }
 
-            if (soundeffect != null)
-            {
-                if (soundeffect) soundeffect.enableBGM();
-                if (!soundeffect) soundeffect.disableBGM();
-                // soundeffect.setBGM(saveData.bgmAllowed);
-                // soundeffect.setSFX(saveData.sfxAllowed);
-            }
-
+        
             GameObject settingObj = getChildByName(this.gameObject, "Setting");
-            if (settingObj != null)
-            {
+
                 GameObject musicObj = getChildByName(settingObj, "Music");
                 GameObject sfxObj = getChildByName(settingObj, "SFX");
-
-                if (musicObj.GetComponent<Toggle>() != null)
-                {
+                
                     musicObj.GetComponent<Toggle>().isOn = saveData.bgmAllowed;
-                }
-
-                if (sfxObj.GetComponent<Toggle>() != null)
-                {
                     sfxObj.GetComponent<Toggle>().isOn = saveData.sfxAllowed;
-                }
-            }
+
+                soundeffect.setSFX(saveData.sfxAllowed);
+                soundeffect.setBGM(saveData.bgmAllowed);
+            
+                Debug.Log("music status "+saveData.bgmAllowed+" "+saveData.sfxAllowed);
+        }else{
+            Debug.Log("saved data not found. ");
         }
     }
 
@@ -376,14 +367,40 @@ public class lobbyController : MonoBehaviour
     }
     public void showPolicy(){
         GameObject settingObj = getChildByName(this.gameObject,"Setting");    
-        GameObject ruleScroll = getChildByName(this.gameObject,"PolicyScroll");
+        GameObject policyScroll = getChildByName(this.gameObject,"PolicyScroll");
         settingObj.SetActive(false);
-        ruleScroll.SetActive(true);
+        policyScroll.SetActive(true);
     }
     public void hidePolicy(){
         GameObject settingObj = getChildByName(this.gameObject,"Setting");    
-        GameObject ruleScroll = getChildByName(this.gameObject,"PolicyScroll");
+        GameObject policyScroll = getChildByName(this.gameObject,"PolicyScroll");
         settingObj.SetActive(true);
-        ruleScroll.SetActive(false);
+        policyScroll.SetActive(false);
+    }
+
+    public void backFromSettings(){
+        if(this.gameState=="menu"){
+            this.RestartScene();
+        }else if(this.gameState=="gameplay"){
+            Gameplay.GetComponent<Gameplay>().canTouch=true;
+            GameObject settingObj = getChildByName(this.gameObject,"Setting");
+            settingObj.SetActive(false);
+        }
+    }
+
+    public void exitGameplay(){
+        camerafollow.setBlur(true);
+        
+        GameObject confirmation = getChildByName(this.gameObject,"Confirmation");
+        Gameplay.GetComponent<Gameplay>().canTouch=false;
+        GameObject textObject = getChildByName(confirmation, "text");
+        textObject.GetComponent<TextMeshProUGUI>().text = "Are you sure you want to exit the game?";
+        confirmation.SetActive(true);
+    }
+    public void continueGameplay(){
+        camerafollow.setBlur(false);
+        GameObject confimation = getChildByName(this.gameObject,"Confirmation");
+        confimation.SetActive(false);
+        Gameplay.GetComponent<Gameplay>().canTouch=true;
     }
 }

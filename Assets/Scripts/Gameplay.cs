@@ -47,7 +47,7 @@ public class Gameplay : MonoBehaviour
 
     void Update()
     {
-        if (Input.touchCount > 0)
+        if (this.canTouch && Input.touchCount > 0)
         {
             Touch touch = Input.GetTouch(0);
             Vector2 centeredPosition = GetCenteredPosition(touch.position);
@@ -68,15 +68,15 @@ public class Gameplay : MonoBehaviour
             }
         }
 
-        else if (Input.GetMouseButtonDown(0))
+        else if (this.canTouch && Input.GetMouseButtonDown(0))
         {
             OnTouch(GetCenteredPosition(Input.mousePosition));
         }
-        else if (Input.GetMouseButton(0))
+        else if ( this.canTouch && Input.GetMouseButton(0))
         {
             OnTouchMove(GetCenteredPosition(Input.mousePosition));
         }
-        else if (Input.GetMouseButtonUp(0))
+        else if (this.canTouch && Input.GetMouseButtonUp(0))
         {
             OnTouchEnd(GetCenteredPosition(Input.mousePosition));
         }

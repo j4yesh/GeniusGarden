@@ -2,39 +2,47 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
+using UnityEngine.UI;
 
 public class SoundEffect : MonoBehaviour
 {
-    private AudioSource audiosource; 
-    public AudioClip clickSound, correctAnswerSound, wrongAnswerSound, newPlayerEnterSound, resultSound,
-                     tryAgainSound;
-
+    private AudioSource audiosource;
+    public AudioClip clickSound, correctAnswerSound, wrongAnswerSound, newPlayerEnterSound, resultSound, tryAgainSound;
     public GameObject BGM;
 
-    private bool allowed ;
+    private bool allowed;
+
+    public GameObject bgmToggle1, sfxToggle1;
 
     void Start()
     {
         audiosource = this.gameObject.GetComponent<AudioSource>();
+
+        SaveData saveData = SaveManager.LoadGameState();
+        setBGM(saveData.bgmAllowed);
+        setSFX(saveData.sfxAllowed);
+
+        bgmToggle1.GetComponent<Toggle>().isOn = !BGM.GetComponent<AudioSource>().mute;
+        sfxToggle1.GetComponent<Toggle>().isOn = allowed;
     }
 
     public void click()
-    {   
-        if(!allowed)return;
+    {
+        if (!allowed) return;
         PlaySound(clickSound);
     }
 
     public void correctAnswer()
     {
-        if(!allowed)return;
+        if (!allowed) return;
         PlaySound(correctAnswerSound);
     }
 
-   public void wrongAnswer()
-    {   
-        if(!allowed)return;
+    public void wrongAnswer()
+    {
+        if (!allowed) return;
 
-        int ri = Random.Range(0, 5);  
+        int ri = Random.Range(0, 5);
 
         if (ri >= 1)
         {
@@ -49,54 +57,54 @@ public class SoundEffect : MonoBehaviour
         }
     }
 
-
     public void newPlayerEnter()
-    {   
-        if(!allowed)return;
-
+    {
+        if (!allowed) return;
         PlaySound(newPlayerEnterSound);
     }
 
     public void result()
     {
-        if(!allowed)return;
-        
+        if (!allowed) return;
         audiosource.PlayOneShot(resultSound);
     }
 
     private void PlaySound(AudioClip clip)
     {
-        if (clip != resultSound)  
+        if (clip != resultSound)
         {
             audiosource.clip = clip;
             audiosource.Play();
         }
     }
 
-    public void enableBGM(bool decide=true){
-        this.BGM.GetComponent<AudioSource>().mute = decide;
+    public void setBGM(bool decide)
+    {
+        this.BGM.GetComponent<AudioSource>().mute = !decide; 
     }
 
-    public void disableBGM(bool decide=false){
-        this.BGM.GetComponent<AudioSource>().mute = decide;
+    public void setSFX(bool decide)
+    {
+        this.allowed = decide;
     }
 
-    public void enableSFX(bool decide=true){
-        this.allowed=decide;
-    }
-    public void disableSFX(bool decide=false){
-        this.allowed=decide;
-    }
-    public void toggleBGM(){
-        this.BGM.GetComponent<AudioSource>().mute = (this.BGM.GetComponent<AudioSource>().mute)?false:true;
+    public void toggleBGM()
+    {
+        bool isOn = bgmToggle1.GetComponent<Toggle>().isOn;
+        setBGM(isOn);
+
         SaveData saveData = SaveManager.LoadGameState();
-        saveData.bgmAllowed = this.BGM.GetComponent<AudioSource>().mute;
+        saveData.bgmAllowed = isOn;
         SaveManager.SaveGameState(saveData);
     }
-    public void toggleSFX(){
-        allowed= (allowed)?false:true;
+
+    public void toggleSFX()
+    {
+        bool isOn = sfxToggle1.GetComponent<Toggle>().isOn;
+        setSFX(isOn);
+
         SaveData saveData = SaveManager.LoadGameState();
-        saveData.sfxAllowed = this.BGM.GetComponent<AudioSource>().mute;
+        saveData.sfxAllowed = isOn;
         SaveManager.SaveGameState(saveData);
     }
 }
