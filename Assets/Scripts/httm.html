@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Connection</title>
+</head>
+<body>
+    <h1>WebSocket Test</h1>
+    <button id="connect">Connect</button>
+    <div id="messages"></div>
+
+    <script>
+        let socket;
+
+        document.getElementById('connect').addEventListener('click', () => {
+            socket = new WebSocket('wss://geniusgarden-server.onrender.com/08/host');
+            // wss://geniusgarden-server.onrender.com/08whg/host
+            socket.onopen = () => {
+                document.getElementById('messages').innerHTML += 'Connected to server<br>';
+            };
+
+            socket.onmessage = (event) => {
+                document.getElementById('messages').innerHTML += 'Message from server: ' + event.data + '<br>';
+            };
+
+            socket.onclose = (event) => {
+                document.getElementById('messages').innerHTML += 'Connection closed<br>';
+            };
+
+            socket.onerror = (error) => {
+                document.getElementById('messages').innerHTML += 'Error: ' + error.message + '<br>';
+            };
+        });
+    </script>
+</body>
+</html>

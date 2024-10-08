@@ -212,6 +212,24 @@ public class WebSocketClient : MonoBehaviour
                     util.GetComponent<Utility>().removeRatFromArena(pl.answer);
                     break;
 
+                case "rematch":
+                  foreach (KeyValuePair<string, GameObject> it in playerMap)
+                {
+                    if (it.Key.Equals(this.selfId))
+                    {
+                        this.GetComponent<Gameplay>().removeAllRat();
+                    }
+                    else
+                    {
+                        it.Value.GetComponent<remoteGameplay>().removeAllRat();
+                    }
+                }
+
+                // Start the game and remove UI elements
+                lobbycontroller.startGameRemoveUI();
+
+                    break;
+
                 default:
                     Debug.Log("Message type not found: " + pl.type);
                     break;
@@ -421,6 +439,35 @@ public class WebSocketClient : MonoBehaviour
     {
         Debug.LogWarning("WebSocket is not open. Current state: " + websocket.State);
     }
-}
+}   
+    public async void callRematch()
+    {
+        if (websocket.State == WebSocketState.Open)
+        {
+            try
+            {
+                string username = lobbycontroller.username;
+
+                string jsonMessage = "{"
+                    + "\"socketId\": \"" + this.selfId + "\","
+                    + "\"type\": \"rematch\","
+                    + "\"position\": [],"
+                    + "\"rotation\": null,"
+                    + "\"data\": \"\","
+                    + "\"answer\": \"\""
+                    + "}";
+
+                await websocket.SendText(jsonMessage);  // Send the message asynchronously
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Send error: {ex.Message}");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("WebSocket is not open. Current state: " + websocket.State);
+        }
+    }
 
 }

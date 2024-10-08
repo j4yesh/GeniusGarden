@@ -84,12 +84,12 @@ public class Utility : MonoBehaviour
 
         newIns.name = this.curAnswer;
         newIns.GetComponent<Follower>().setNumber(this.curAnswer);
-        newIns.GetComponent<SpriteRenderer>().color = this.preColor[Random.Range(0, 9)];
+        newIns.GetComponent<SpriteRenderer>().color = this.preColor[Abs(int.Parse(this.curAnswer))%9];
     }
 
     public GameObject getNewRat(string str){
         GameObject rat = Instantiate(ratTemplate, new Vector3(), Quaternion.identity);
-        rat.GetComponent<SpriteRenderer>().color = this.preColor[Random.Range(0, 9)];
+        rat.GetComponent<SpriteRenderer>().color = this.preColor[Abs(int.Parse(str))%9];
         rat.name = str;
         // ratTracker.Add(str,rat);
         return rat;
@@ -100,7 +100,7 @@ public class Utility : MonoBehaviour
         GameObject dummy = Instantiate(ratTemplate, pos, Quaternion.identity);
 
         dummy.name = dummyAns;
-        dummy.GetComponent<SpriteRenderer>().color = this.preColor[Random.Range(0, 9)];
+        dummy.GetComponent<SpriteRenderer>().color = this.preColor[Abs(int.Parse(dummyAns))%9];
         ratTracker[dummyAns]=dummy;
 
         StartCoroutine(this.DestroyRat(dummy,dummyAns));
@@ -127,7 +127,7 @@ public class Utility : MonoBehaviour
 
         newIns.name = answer;
         newIns.GetComponent<Follower>().setNumber(answer);
-        newIns.GetComponent<SpriteRenderer>().color = this.preColor[Random.Range(0, 9)];
+        newIns.GetComponent<SpriteRenderer>().color = this.preColor[Abs(int.Parse(answer))%9];
         ratTracker[answer]=newIns;
         StartCoroutine(this.DestroyRat(newIns,answer));
     }
@@ -211,6 +211,13 @@ public class Utility : MonoBehaviour
             Debug.Log("key not found but destroy called");
         }
         
+    }
+
+    int Abs(int num){
+        if(num<0){
+            num=-1*num;
+        }
+        return num;
     }
 
 }

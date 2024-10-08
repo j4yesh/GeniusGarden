@@ -145,6 +145,18 @@ public class Gameplay : MonoBehaviour
         }
     }
 
+    public void removeAllRat(){
+        Transform rat = rear;
+        
+        if (rat.GetComponent<Follower>())
+        {   
+            rear = rat.GetComponent<Follower>().toFollow;
+            Destroy(rat.gameObject);
+            rat.GetComponent<Follower>().toFollow = null;
+            removeAllRat();
+        }
+    }
+
 
     Vector2 GetCenteredPosition(Vector2 position)
     {

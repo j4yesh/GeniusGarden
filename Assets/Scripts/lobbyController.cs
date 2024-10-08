@@ -52,6 +52,8 @@ public class lobbyController : MonoBehaviour
         camerafollow.setBlur(true);
         this.LoadData();
         // selfUsername.text = GenerateRandomEndpoint();
+        GameObject rankingObj = getChildByName(this.gameObject,"Ranking");
+        rankingObj.SetActive(false);
     }
 
 
@@ -164,6 +166,9 @@ public class lobbyController : MonoBehaviour
 
     public void startGameRemoveUI()
     {   
+        this.HideAllCanvas();
+        GameObject rankingObj = getChildByName(this.gameObject,"Ranking");
+        rankingObj.SetActive(true);
         GameObject settingIcon = getChildByName(this.gameObject, "SettingIcon");
         settingIcon.SetActive(true);
         GameObject exitIcon = getChildByName(this.gameObject, "ExitIcon");
@@ -223,14 +228,20 @@ public class lobbyController : MonoBehaviour
 
     public void showResult(List<string> ranking, int rank)
     {   
+
         GameObject settingIcon = getChildByName(this.gameObject, "SettingIcon");
         settingIcon.SetActive(false);
         GameObject exitIcon = getChildByName(this.gameObject, "ExitIcon");
         exitIcon.SetActive(false);
 
+        GameObject rankingObj = getChildByName(this.gameObject,"Ranking");
+        rankingObj.SetActive(false);
+
         Gameplay.GetComponent<Gameplay>().canTouch = false; 
         camerafollow.setBlur(true);
         GameObject resultObj = getChildByName(this.gameObject, "Result");
+        GameObject baggyObj = getChildByName(resultObj, "BAGGY");
+        this.deleteChild(baggyObj);
         string star = "";
 
         if (rank == 1)
@@ -274,7 +285,8 @@ public class lobbyController : MonoBehaviour
     }
 
     public void realtimeGameRanking(List<string> rankingList)
-    {
+    {   
+
         if (rankingList == null || rankingList.Count == 0)
         {
             Debug.LogWarning("Ranking List is empty or null");
@@ -284,6 +296,12 @@ public class lobbyController : MonoBehaviour
         Debug.Log("Ranking List called: " + rankingList[0]);
 
         GameObject rankingObj = getChildByName(this.gameObject, "Ranking");
+
+          foreach (Transform child in rankingObj.transform)
+        {   
+            if(child.gameObject.name!="Rank"){
+            Destroy(child.gameObject);}
+        }
 
         foreach (Transform child in rankingObj.transform)
         {
@@ -311,6 +329,12 @@ public class lobbyController : MonoBehaviour
 
     public void Settings()
     {   
+        GameObject settingIcon = getChildByName(this.gameObject,"SettingIcon");
+        settingIcon.SetActive(false);
+
+GameObject ExitIcon = getChildByName(this.gameObject,"ExitIcon");
+        ExitIcon.SetActive(false);
+        
         Gameplay.GetComponent<Gameplay>().canTouch=false;
         GameObject settingObj = getChildByName(this.gameObject, "Setting");
         GameObject menuObj = getChildByName(this.gameObject, "1");
@@ -382,6 +406,11 @@ public class lobbyController : MonoBehaviour
         if(this.gameState=="menu"){
             this.RestartScene();
         }else if(this.gameState=="gameplay"){
+            GameObject settingIcon = getChildByName(this.gameObject,"SettingIcon");
+        settingIcon.SetActive(true);
+
+GameObject ExitIcon = getChildByName(this.gameObject,"ExitIcon");
+        ExitIcon.SetActive(true);
             Gameplay.GetComponent<Gameplay>().canTouch=true;
             GameObject settingObj = getChildByName(this.gameObject,"Setting");
             settingObj.SetActive(false);
@@ -399,8 +428,39 @@ public class lobbyController : MonoBehaviour
     }
     public void continueGameplay(){
         camerafollow.setBlur(false);
+
+        GameObject settingIcon = getChildByName(this.gameObject,"SettingIcon");
+        settingIcon.SetActive(true);
+
+GameObject ExitIcon = getChildByName(this.gameObject,"ExitIcon");
+        ExitIcon.SetActive(true);
+
         GameObject confimation = getChildByName(this.gameObject,"Confirmation");
         confimation.SetActive(false);
         Gameplay.GetComponent<Gameplay>().canTouch=true;
     }
+
+    public void callRematch(){
+        Gameplay.GetComponent<WebSocketClient>().callRematch();
+
+    }
+
+    public void HideAllCanvas()
+    {
+        foreach (Transform child in this.transform)
+        {
+            child.gameObject.SetActive(false);
+        }
+    }
+
+    public void deleteChild(GameObject obj)
+    {
+        foreach (Transform child in obj.transform)
+        {
+            Destroy(child.gameObject);
+        }
+    }
+
+
+
 }
