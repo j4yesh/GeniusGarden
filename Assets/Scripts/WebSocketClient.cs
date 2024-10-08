@@ -223,7 +223,12 @@ public class WebSocketClient : MonoBehaviour
                     {
                         it.Value.GetComponent<remoteGameplay>().removeAllRat();
                     }
-                }
+                }   
+                    lobbycontroller.startGameRemoveUI();
+                    break;
+                case "notification":
+                    lobbycontroller.showNotification(pl.data);
+                    break;
 
                 // Start the game and remove UI elements
                 lobbycontroller.startGameRemoveUI();

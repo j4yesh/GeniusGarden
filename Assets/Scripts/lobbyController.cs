@@ -173,6 +173,9 @@ public class lobbyController : MonoBehaviour
         settingIcon.SetActive(true);
         GameObject exitIcon = getChildByName(this.gameObject, "ExitIcon");
         exitIcon.SetActive(true);
+        GameObject resultObj = getChildByName(this.gameObject, "Result");
+        resultObj.SetActive(false);
+
 
         this.gameState="gameplay";
         HostCanvas.SetActive(false);
@@ -414,6 +417,9 @@ GameObject ExitIcon = getChildByName(this.gameObject,"ExitIcon");
             Gameplay.GetComponent<Gameplay>().canTouch=true;
             GameObject settingObj = getChildByName(this.gameObject,"Setting");
             settingObj.SetActive(false);
+
+             GameObject notificObj = getChildByName(this.gameObject,"Notification");
+        notificObj.SetActive(false);
         }
     }
 
@@ -441,8 +447,8 @@ GameObject ExitIcon = getChildByName(this.gameObject,"ExitIcon");
     }
 
     public void callRematch(){
+        
         Gameplay.GetComponent<WebSocketClient>().callRematch();
-
     }
 
     public void HideAllCanvas()
@@ -461,6 +467,19 @@ GameObject ExitIcon = getChildByName(this.gameObject,"ExitIcon");
         }
     }
 
+    public void showNotification(string message){
+        GameObject settingIcon = getChildByName(this.gameObject, "SettingIcon");
+        settingIcon.SetActive(false);
+        GameObject exitIcon = getChildByName(this.gameObject, "ExitIcon");
+        exitIcon.SetActive(false);
 
+        GameObject notificObj = getChildByName(this.gameObject,"Notification");
+        notificObj.SetActive(true);
+
+        GameObject textObj = getChildByName(notificObj,"text");
+        textObj.GetComponent<TextMeshProUGUI>().text=message;
+                Gameplay.GetComponent<Gameplay>().canTouch = false; 
+
+    }
 
 }
