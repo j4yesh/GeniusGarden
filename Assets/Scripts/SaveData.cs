@@ -10,4 +10,6 @@ public class SaveData
 
     public bool bgmAllowed;
 
+    public string cookie;
+
 }

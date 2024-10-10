@@ -54,11 +54,16 @@ public class lobbyController : MonoBehaviour
         // selfUsername.text = GenerateRandomEndpoint();
         GameObject rankingObj = getChildByName(this.gameObject,"Ranking");
         rankingObj.SetActive(false);
+        GameObject leaderboardObj = getChildByName(this.gameObject,"Leaderboard");
+        leaderboardObj.SetActive(true);
     }
 
 
     public void hostGame()
-    {
+    {   
+        GameObject leaderboard=getChildByName(this.gameObject,"Leaderboard");
+        leaderboard.SetActive(false);
+
         roomId = GenerateRandomEndpoint();
         string Endpoint = env.API_URL + '/' + roomId + "/host";
         Debug.Log(Endpoint);
@@ -97,7 +102,9 @@ public class lobbyController : MonoBehaviour
 
 
     public void JoinGame()
-    {
+    {   
+        GameObject leaderboard= getChildByName(this.gameObject,"Leaderboard");
+        leaderboard.SetActive(false);
         canvas1.SetActive(false);
         JoinCanvas.SetActive(true);
     }
@@ -192,6 +199,8 @@ public class lobbyController : MonoBehaviour
     public void playPublicRoom()
     {
         this.startGameRemoveUI();
+         GameObject leaderboard= getChildByName(this.gameObject,"Leaderboard");
+        leaderboard.SetActive(false);
         Gameplay.GetComponent<WebSocketClient>().Initiate(env.API_URL + "/random/joinrandom");
     }
 
@@ -331,7 +340,9 @@ public class lobbyController : MonoBehaviour
     }
 
     public void Settings()
-    {   
+    {    GameObject leaderboard= getChildByName(this.gameObject,"Leaderboard");
+        leaderboard.SetActive(false);
+        
         GameObject settingIcon = getChildByName(this.gameObject,"SettingIcon");
         settingIcon.SetActive(false);
 
@@ -459,6 +470,15 @@ GameObject ExitIcon = getChildByName(this.gameObject,"ExitIcon");
         }
     }
 
+    public static void HideAllCanvas(GameObject obj)
+    {
+        foreach (Transform child in obj.transform)
+        {
+            child.gameObject.SetActive(false);
+        }
+    }
+
+
     public void deleteChild(GameObject obj)
     {
         foreach (Transform child in obj.transform)
@@ -480,6 +500,15 @@ GameObject ExitIcon = getChildByName(this.gameObject,"ExitIcon");
         textObj.GetComponent<TextMeshProUGUI>().text=message;
                 Gameplay.GetComponent<Gameplay>().canTouch = false; 
 
+    }
+
+    public void showLogin(){
+        GameObject leadObj = getChildByName(this.gameObject,"Leaderboard");
+        GameObject MenuObj = getChildByName(this.gameObject,"1");
+        MenuObj.SetActive(false);
+        leadObj.SetActive(false);
+        GameObject loginObj = getChildByName(this.gameObject,"Login");
+        loginObj.SetActive(true);
     }
 
 }

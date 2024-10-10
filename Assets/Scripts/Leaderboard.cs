@@ -44,5 +44,10 @@ public class Leaderboard : MonoBehaviour
         newAccep.transform.SetParent(AcceptanceObj.transform,false);
     }
 
+    public void hideLoading(){
+                GameObject toBeDelete = lobbyController.getChildByName(this.gameObject,"Loading");
+                toBeDelete.SetActive(false);
+
+    }
 
 }
