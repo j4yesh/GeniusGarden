@@ -36,3 +36,7 @@ build/
 .env
 .env.*
 env.cs
+
+.Endpoint
+.Endpoint.*
+Endpoint.cs
