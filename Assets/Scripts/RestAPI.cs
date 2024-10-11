@@ -40,6 +40,32 @@ public class LoginData
     }
 }
 
+[System.Serializable]
+public class SignUpData
+{
+    public string username;
+    public string password;
+    public string email;
+    public string otp;
+
+    public SignUpData(string username, string password, string email, string otp)
+    {
+        this.username = username;
+        this.password = password;
+        this.email = email;
+        this.otp = otp;
+    }
+}
+[System.Serializable]
+public class otpData
+{
+    public string email;
+
+    public otpData(string email)
+    {
+        this.email = email;
+    }
+}
 public class RestAPI : MonoBehaviour
 {
     private Leaderboard leaderboard;
@@ -53,6 +79,8 @@ public class RestAPI : MonoBehaviour
     private GameObject loginPageObj;
 
     private TextMeshProUGUI menuUsername;
+    private GameObject verificObj;
+
     void Start()
     {
         GameObject oneObj = lobbyController.getChildByName(this.gameObject, "1");
@@ -60,47 +88,156 @@ public class RestAPI : MonoBehaviour
 
         menuUsername.text = "Loading";
 
-        getMenuUsername();
 
         this.leaderboard = lobbyController.getChildByName(this.gameObject, "Leaderboard")
             .GetComponent<Leaderboard>();
 
-        StartCoroutine(GetRequest(env.API_URL1 + "/leaderboard"));
 
         SaveData saveData = SaveManager.LoadGameState();
         if (saveData.cookie != null)
         {
             cookie = saveData.cookie;
-            Debug.Log("cookie: " + cookie);
+            Debug.Log(" Cookie: " + cookie);
         }
+        verificObj = lobbyController.getChildByName(this.gameObject, "SendOTP");
 
         loading = transform.Find("Loading").gameObject.GetComponent<Loading>();
 
 
+        StartCoroutine(GetRequest(env.API_URL1 + "/leaderboard"));
+        getMenuUsername();
     }
 
-    async Task  getMenuUsername()
-{
-    using var client = new HttpClient();
 
-        // Correct the URL with protocol (http://)
-        var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost:8080/getusername");
+    public void showOtpVerificatiion()
+    {
+        lobbyController.getChildByName(this.gameObject, "1").SetActive(false);
+        lobbyController.getChildByName(this.gameObject, "Leaderboard").SetActive(false);
+        verificObj.SetActive(true);
+    }
 
-        // Add Authorization header with the Bearer token
-        request.Headers.Add("Authorization", this.cookie);
+    public void getOTP()
+    {
+        loading.show();
+        GameObject emailObj = lobbyController.getChildByName(verificObj, "EMAIL");
+        emailObj.SetActive(false);
+        getOtpReq();
+    }
 
-        // Send the request and get the response
+    async Task getOtpReq()
+    {
+         try
+    {
+        using var client = new HttpClient();
+        var request = new HttpRequestMessage(HttpMethod.Post, env.API_URL1 + "/getotp");
+        string email = lobbyController.getChildByName(verificObj, "EMAIL").GetComponent<TMP_InputField>().text;
+        string jsonPayLoad = JsonUtility.ToJson(new otpData(email));
+        Debug.Log("jsongPayload"+jsonPayLoad);
+        request.Content = new StringContent(jsonPayLoad, System.Text.Encoding.UTF8, "application/json");
         var response = await client.SendAsync(request);
-
-        // Ensure the request was successful
         response.EnsureSuccessStatusCode();
-
-        // Output the response content (username in this case)
         var responseBody = await response.Content.ReadAsStringAsync();
-        Debug.Log("responsebody: "+responseBody);
-}
+        Debug.Log("Response: " + responseBody);
+        
+        // this.gameObject.GetComponent<lobbyController>().HideAllCanvas();
+        lobbyController.getChildByName(this.verificObj,"EMAIL").SetActive(false);
+        lobbyController.getChildByName(this.verificObj,"OTP").SetActive(true);
+        lobbyController.getChildByName(this.verificObj,"USERNAME").SetActive(true);
+        lobbyController.getChildByName(this.verificObj,"PASS").SetActive(true);
+        lobbyController.getChildByName(this.verificObj,"SUBMITEMAIL").SetActive(false);
+        lobbyController.getChildByName(this.verificObj,"SUBMITOTP").SetActive(true);
+            loading.hide();
 
 
+
+
+        menuUsername.text = responseBody;
+    }
+    catch (HttpRequestException e)
+    {
+    
+        Debug.LogError("Request error: " + e.Message);
+            this.gameObject.GetComponent<lobbyController>().showError(e.Message);
+
+    }
+    }
+
+    public void signUp()
+    {
+        loading.show();
+        verificObj.SetActive(false);
+        signUpReq();
+    }
+    async Task signUpReq()
+    {
+        try
+        {
+            using var client = new HttpClient();
+            var request = new HttpRequestMessage(HttpMethod.Post, env.API_URL1 + "/register");
+            string username = lobbyController.getChildByName(verificObj, "USERNAME").GetComponent<TMP_InputField>().text;
+            string password = lobbyController.getChildByName(verificObj, "PASS").GetComponent<TMP_InputField>().text;
+            string otp = lobbyController.getChildByName(verificObj, "OTP").GetComponent<TMP_InputField>().text;
+            string email = lobbyController.getChildByName(verificObj, "EMAIL").GetComponent<TMP_InputField>().text;
+            string jsonPayLoad = JsonUtility.ToJson(new SignUpData(username, password, email, otp));
+
+            request.Content = new StringContent(jsonPayLoad, System.Text.Encoding.UTF8, "application/json");
+
+            var response = await client.SendAsync(request);
+            loading.hide();
+
+            response.EnsureSuccessStatusCode();
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+            Debug.Log("Response: " + responseBody);
+
+            StartCoroutine(Successfull(responseBody));
+        }
+        catch (HttpRequestException e)
+        {
+            menuUsername.text = "Please Login";
+            menuUsername.color = Color.red;
+            Debug.LogError("Request error: " + e.Message);
+
+        }
+    }
+
+
+
+    async Task getMenuUsername()
+    {
+        try
+        {
+            using var client = new HttpClient();
+
+            var request = new HttpRequestMessage(HttpMethod.Get, env.API_URL1 + "/getusername");
+
+            if (!string.IsNullOrEmpty(this.cookie))
+            {
+                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", this.cookie);
+            }
+            else
+            {
+                Debug.LogError("Token is missing or invalid.");
+                menuUsername.text = "Please Login";
+                menuUsername.color = Color.red;
+                return;
+            }
+
+            var response = await client.SendAsync(request);
+
+            response.EnsureSuccessStatusCode();
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+            Debug.Log("username: " + responseBody);
+            menuUsername.text = responseBody;
+        }
+        catch (HttpRequestException e)
+        {
+            menuUsername.text = "Please Login";
+            menuUsername.color = Color.red;
+            Debug.LogError("Request error: " + e.Message);
+        }
+    }
 
     IEnumerator GetRequest(string uri)
     {
@@ -192,4 +329,12 @@ public class RestAPI : MonoBehaviour
         this.gameObject.GetComponent<lobbyController>().RestartScene();
     }
 
+     public void logOut(){
+        lobbyController.getChildByName(this.gameObject,"Setting").SetActive(false);
+
+        SaveData saveData = SaveManager.LoadGameState();
+        saveData.cookie = null;
+        SaveManager.SaveGameState(saveData);
+        StartCoroutine(Successfull("LogOut Successfully"));
+    }
 }

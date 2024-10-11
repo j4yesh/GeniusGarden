@@ -221,14 +221,8 @@ public class lobbyController : MonoBehaviour
 
     public void showError(string data)
     {
-        GameObject objToInActive = getChildByName(this.gameObject, "1");
-        GameObject objToInActive1 = getChildByName(this.gameObject, "HostCanvas");
-        GameObject objToInActive2 = getChildByName(this.gameObject, "JoinCanvas");
-        GameObject objToInActive3 = getChildByName(this.gameObject, "JoinCanvas1");
-        objToInActive.SetActive(false);
-        objToInActive1.SetActive(false);
-        objToInActive2.SetActive(false);
-        objToInActive3.SetActive(false);
+this.   HideAllCanvas();
+
 
         GameObject errorCanvas = getChildByName(this.gameObject, "Error");
         errorCanvas.SetActive(true);
