@@ -59,12 +59,11 @@ public class lobbyController : MonoBehaviour
     }
 
 
-    public void hostGame()
+    public void hostGame(string roomId)
     {   
         GameObject leaderboard=getChildByName(this.gameObject,"Leaderboard");
         leaderboard.SetActive(false);
 
-        roomId = GenerateRandomEndpoint();
         string Endpoint = env.API_URL + '/' + roomId + "/host";
         Debug.Log(Endpoint);
         canvas1.SetActive(false);
@@ -119,7 +118,14 @@ public class lobbyController : MonoBehaviour
         if (joinRoomId == "") joinRoomId = "_";
         GameObject tempObj1 = getChildByName(tempObj, "ROOMID");
         tempObj1.GetComponent<TextMeshProUGUI>().text = "ROOM ID: " + joinRoomId;
+
+        // Gameplay.GetComponent<WebSocketClient>().Initiate(env.API_URL + '/' + joinRoomId + "/join");
+        this.gameObject.GetComponent<RestAPI>().joinGameReq("",joinRoomId);
+    }
+
+    public void callbackJoinGame(string joinRoomId){
         Gameplay.GetComponent<WebSocketClient>().Initiate(env.API_URL + '/' + joinRoomId + "/join");
+
     }
 
     public void removeEntryFromBoard(string id)

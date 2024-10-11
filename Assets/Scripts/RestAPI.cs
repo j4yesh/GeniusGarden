@@ -66,6 +66,15 @@ public class otpData
         this.email = email;
     }
 }
+[System.Serializable]
+public class joinDTO
+{
+    public string roomId;
+    public joinDTO(string roomId)
+    {   
+        this.roomId=roomId;
+    }
+}
 public class RestAPI : MonoBehaviour
 {
     private Leaderboard leaderboard;
@@ -226,8 +235,11 @@ public class RestAPI : MonoBehaviour
             var response = await client.SendAsync(request);
 
             response.EnsureSuccessStatusCode();
-
             var responseBody = await response.Content.ReadAsStringAsync();
+            SaveData saveData = SaveManager.LoadGameState();
+            saveData.username = responseBody;
+            SaveManager.SaveGameState(saveData);
+            this.gameObject.GetComponent<lobbyController>().username=responseBody;
             Debug.Log("username: " + responseBody);
             menuUsername.text = responseBody;
         }
@@ -337,4 +349,98 @@ public class RestAPI : MonoBehaviour
         SaveManager.SaveGameState(saveData);
         StartCoroutine(Successfull("LogOut Successfully"));
     }
+
+    public void hostGame(){
+        loading.show();
+        hostGameReq();
+    }
+
+    async Task hostGameReq()
+    {
+        try
+        {
+            using var client = new HttpClient();
+
+            var request = new HttpRequestMessage(HttpMethod.Get, env.API_URL1 + "/getroom");
+
+            if (!string.IsNullOrEmpty(this.cookie))
+            {
+                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", this.cookie);
+            }
+            else
+            {
+                Debug.LogError("Token is missing or invalid.");
+                this.gameObject.GetComponent<lobbyController>().showError("Please Login");
+                
+                return;
+            }
+            var response = await client.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            loading.hide();
+            var roomId = await response.Content.ReadAsStringAsync();
+            this.gameObject.GetComponent<lobbyController>().hostGame(roomId);
+        }
+        catch (HttpRequestException e)
+        {
+            loading.hide();
+            this.gameObject.GetComponent<lobbyController>().showError(e.Message);
+            Debug.LogError("Request error: " + e.Message);
+        }
+    }
+
+    public async Task joinGameReq(string username, string roomId)
+{
+    loading.show();
+
+    try
+    {
+        using var client = new HttpClient();
+
+        var request = new HttpRequestMessage(HttpMethod.Post, env.API_URL1 + "/joinroom");
+
+        // Prepare payload and set content type to application/json
+        string jsonPayload = JsonUtility.ToJson(new joinDTO(roomId));
+        request.Content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+
+        // Set Authorization header with the Bearer token if available
+        if (!string.IsNullOrEmpty(this.cookie))
+        {
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", this.cookie);
+        }
+        else
+        {
+            Debug.LogError("Token is missing or invalid.");
+            this.gameObject.GetComponent<lobbyController>().showError("Please Login");
+            return;
+        }
+
+        // Send the request and check response status
+        var response = await client.SendAsync(request);
+        
+        if (response.IsSuccessStatusCode)
+        {
+            loading.hide();
+            // Assuming you may want to parse the response if needed
+            string responseBody = await response.Content.ReadAsStringAsync();
+            
+            // Call the callback for successfully joining the game
+            this.gameObject.GetComponent<lobbyController>().callbackJoinGame(roomId);
+        }
+        else
+        {
+            // Handle non-success status codes
+            string errorResponse = await response.Content.ReadAsStringAsync();
+            loading.hide();
+            Debug.LogError($"Error: {response.StatusCode}, Response: {errorResponse}");
+            this.gameObject.GetComponent<lobbyController>().showError("Failed to join the game. Try again.");
+        }
+    }
+    catch (HttpRequestException e)
+    {
+        loading.hide();
+        this.gameObject.GetComponent<lobbyController>().showError(e.Message);
+        Debug.LogError("Request error: " + e.Message);
+    }
+}
+
 }
