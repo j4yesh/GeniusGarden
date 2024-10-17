@@ -7,7 +7,7 @@ using System.Text;
 
 [System.Serializable]
 public class StringListWrapper
-{  
+{
     //JsonUtility.FromJson<T>(). It doesn't work with generic types like
     // List<T> directly because JsonUtility only supports serializing and deserializing classes, not collections like List<string>.
     public List<string> list;
@@ -43,8 +43,6 @@ public class WebSocketClient : MonoBehaviour
 
     public GameObject util;
 
-    private bool started = false;
-
     public Loading loading;
 
     public lobbyController lobbycontroller;
@@ -53,7 +51,7 @@ public class WebSocketClient : MonoBehaviour
     public async void Initiate(string Endpoint)
     {
         loading.show();
-        this.started = true;
+     
         playerMap = new Dictionary<string, GameObject>();
         // websocket = new WebSocket("ws://localhost:8080/game/1e769");
         websocket = new WebSocket(Endpoint);
@@ -61,29 +59,41 @@ public class WebSocketClient : MonoBehaviour
         websocket.OnOpen += () =>
         {
             Debug.Log("Connection open!");
-            this.setNameCall();
+            // this.setNameCall();
 
         };
 
         websocket.OnError += (e) =>
         {
             Debug.Log("Error! " + e);
-            lobbycontroller.showError(e);
+            // lobbycontroller.showError(e);
         };
 
         websocket.OnClose += (closeCode) =>
         {
             // loading.hide();
+            lobbycontroller.showError("Connection closed");
             Debug.Log($"Connection closed with code: {closeCode}");
         };
 
         websocket.OnMessage += (bytes) =>
         {
             var jsonString = System.Text.Encoding.UTF8.GetString(bytes);
-            payLoad pl = JsonUtility.FromJson<payLoad>(jsonString);
+            Debug.Log("OnMessage! " + jsonString);
+
+            payLoad pl=null;
+            try
+            {
+                pl = JsonUtility.FromJson<payLoad>(jsonString);
+                // Debug.Log("Parsed payLoad successfully.");
+            }
+            catch (Exception e)
+            {
+                Debug.Log("Error while parsing JSON: " + e.Message);
+            }
             switch (pl.type)
             {
-               case "position":
+                case "position":
                     if (playerMap.ContainsKey(pl.socketId))
                     {
                         GameObject obj = playerMap[pl.socketId];
@@ -102,11 +112,14 @@ public class WebSocketClient : MonoBehaviour
                     break;
 
                 case "spawn rat":
-                    if(pl.socketId==this.selfId){
+                    if (pl.socketId == this.selfId)
+                    {
                         util.GetComponent<Utility>().setQuestion(pl.question, pl.answer,
                             new Vector3(pl.position[0], pl.position[1], pl.position[2]));
-                    }else{
-                    util.GetComponent<Utility>().spawnDummyRat(new Vector3(pl.position[0], pl.position[1], pl.position[2]), pl.answer);
+                    }
+                    else
+                    {
+                        util.GetComponent<Utility>().spawnDummyRat(new Vector3(pl.position[0], pl.position[1], pl.position[2]), pl.answer);
                     }
                     break;
 
@@ -117,7 +130,7 @@ public class WebSocketClient : MonoBehaviour
                 case "self id":
                     this.selfId = pl.socketId;
                     Vector3 newSelfPosition = new Vector3(pl.position[0], pl.position[1], pl.position[2]);
-                    this.GetComponent<Gameplay>().SetPosition(new Vector2(newSelfPosition.x,newSelfPosition.y));
+                    this.GetComponent<Gameplay>().SetPosition(new Vector2(newSelfPosition.x, newSelfPosition.y));
                     this.GetComponent<Gameplay>().setName(pl.name);
                     playerMap.Add(this.selfId, this.GetComponent<Gameplay>().Head);
                     loading.hide();
@@ -164,6 +177,7 @@ public class WebSocketClient : MonoBehaviour
                     break;
 
                 case "startGame":
+                    Debug.Log("startGame call received");
                     lobbycontroller.startGameRemoveUI();
                     break;
 
@@ -195,52 +209,52 @@ public class WebSocketClient : MonoBehaviour
                     Result result = JsonUtility.FromJson<Result>(pl.data);
                     lobbycontroller.showResult(result.ranking, result.rank);
                     break;
-                
+
                 case "removeRat":
-                    if(pl.socketId==this.selfId){
-                            soundeffect.wrongAnswer();
-                            this.GetComponent<Gameplay>().removeRat();
-                            util.GetComponent<Utility>().setRed();
-                    }else{
-                        if(playerMap.ContainsKey(pl.socketId)){
+                    if (pl.socketId == this.selfId)
+                    {
+                        soundeffect.wrongAnswer();
+                        this.GetComponent<Gameplay>().removeRat();
+                        util.GetComponent<Utility>().setRed();
+                    }
+                    else
+                    {
+                        if (playerMap.ContainsKey(pl.socketId))
+                        {
                             GameObject player = playerMap[pl.socketId];
                             player.GetComponent<remoteGameplay>().removeRat();
                         }
                     }
                     break;
-                case "removeRatFromArena": 
+                case "removeRatFromArena":
                     util.GetComponent<Utility>().removeRatFromArena(pl.answer);
                     break;
 
                 case "rematch":
-                  foreach (KeyValuePair<string, GameObject> it in playerMap)
-                {
-                    if (it.Key.Equals(this.selfId))
+                    foreach (KeyValuePair<string, GameObject> it in playerMap)
                     {
-                        this.GetComponent<Gameplay>().removeAllRat();
+                        if (it.Key.Equals(this.selfId))
+                        {
+                            this.GetComponent<Gameplay>().removeAllRat();
+                        }
+                        else
+                        {
+                            it.Value.GetComponent<remoteGameplay>().removeAllRat();
+                        }
                     }
-                    else
-                    {
-                        it.Value.GetComponent<remoteGameplay>().removeAllRat();
-                    }
-                }   
                     lobbycontroller.startGameRemoveUI();
                     break;
                 case "notification":
                     lobbycontroller.showNotification(pl.data);
                     break;
 
-                // Start the game and remove UI elements
-                lobbycontroller.startGameRemoveUI();
-
-                    break;
 
                 default:
                     Debug.Log("Message type not found: " + pl.type);
                     break;
             }
 
-            Debug.Log("OnMessage! " + jsonString);
+            // Debug.Log("OnMessage! " + jsonString);
         };
 
         // InvokeRepeating("SendWebSocketMessage", 0.0f, 0.01f);
@@ -281,7 +295,7 @@ public class WebSocketClient : MonoBehaviour
         }
     }
 
-    public async void SendWebSocketMessage(float moveX,float moveY)
+    public async void SendWebSocketMessage(float moveX, float moveY)
     {
         if (websocket.State == WebSocketState.Open)
         {
@@ -417,34 +431,34 @@ public class WebSocketClient : MonoBehaviour
     }
 
     public async void removeRat()
-{
-    if (websocket.State == WebSocketState.Open)
     {
-        try
+        if (websocket.State == WebSocketState.Open)
         {
-            string username = lobbycontroller.username;
+            try
+            {
+                string username = lobbycontroller.username;
 
-            string jsonMessage = "{"
-                + "\"socketId\": \"" + this.selfId + "\","
-                + "\"type\": \"removeRat\","
-                + "\"position\": [],"
-                + "\"rotation\": null,"
-                + "\"data\": \"\","
-                + "\"answer\": \"\""
-                + "}";
+                string jsonMessage = "{"
+                    + "\"socketId\": \"" + this.selfId + "\","
+                    + "\"type\": \"removeRat\","
+                    + "\"position\": [],"
+                    + "\"rotation\": null,"
+                    + "\"data\": \"\","
+                    + "\"answer\": \"\""
+                    + "}";
 
-            await websocket.SendText(jsonMessage);  // Send the message asynchronously
+                await websocket.SendText(jsonMessage);  // Send the message asynchronously
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Send error: {ex.Message}");
+            }
         }
-        catch (Exception ex)
+        else
         {
-            Debug.LogError($"Send error: {ex.Message}");
+            Debug.LogWarning("WebSocket is not open. Current state: " + websocket.State);
         }
     }
-    else
-    {
-        Debug.LogWarning("WebSocket is not open. Current state: " + websocket.State);
-    }
-}   
     public async void callRematch()
     {
         if (websocket.State == WebSocketState.Open)

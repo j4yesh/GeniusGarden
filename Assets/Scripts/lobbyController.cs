@@ -64,7 +64,7 @@ public class lobbyController : MonoBehaviour
         GameObject leaderboard=getChildByName(this.gameObject,"Leaderboard");
         leaderboard.SetActive(false);
 
-        string Endpoint = env.API_URL + '/' + roomId + "/host";
+        string Endpoint = env.API_URL + '/' + roomId + "/host/"+this.username;
         Debug.Log(Endpoint);
         canvas1.SetActive(false);
         HostCanvas.SetActive(true);
@@ -82,20 +82,31 @@ public class lobbyController : MonoBehaviour
     }
 
     public void addPlayerEntry(string name)
-    {
+    {   
+
         Debug.Log("Adding the Player entry: " + name);
         GameObject nameObj = Instantiate(PlayerEntryUI, Vector3.zero, Quaternion.identity);
         nameObj.GetComponent<TextMeshProUGUI>().text = name;
+        // deleteChild(playerTable);
         nameObj.transform.SetParent(playerTable.transform, false);
 
         GameObject nameObj1 = Instantiate(PlayerEntryUI, Vector3.zero, Quaternion.identity);
         nameObj1.GetComponent<TextMeshProUGUI>().text = name;
         GameObject parentTemp = getChildByName(getChildByName(this.gameObject, "JoinCanvas1"), "BAGGY");
+        // deleteChild(parentTemp);
         nameObj1.transform.SetParent(parentTemp.transform, false);
+
+        GameObject nameObj2 = Instantiate(PlayerEntryUI, Vector3.zero, Quaternion.identity);
+        nameObj2.GetComponent<TextMeshProUGUI>().text = name;
+        GameObject parentTemp1 = getChildByName(getChildByName(this.gameObject, "Public"), "BAGGY");
+        // deleteChild(parentTemp1);
+        nameObj2.transform.SetParent(parentTemp1.transform, false);
+
 
         List<GameObject> twoList = new List<GameObject>();
         twoList.Add(nameObj);
         twoList.Add(nameObj1);
+        twoList.Add(nameObj2);
         playerInRoom.Add(name, twoList);
     }
 
@@ -124,7 +135,7 @@ public class lobbyController : MonoBehaviour
     }
 
     public void callbackJoinGame(string joinRoomId){
-        Gameplay.GetComponent<WebSocketClient>().Initiate(env.API_URL + '/' + joinRoomId + "/join");
+        Gameplay.GetComponent<WebSocketClient>().Initiate(env.API_URL + '/' + joinRoomId + "/join/" +this.username);
 
     }
 
@@ -205,9 +216,10 @@ public class lobbyController : MonoBehaviour
     public void playPublicRoom()
     {
         this.startGameRemoveUI();
+        // username=GenerateRandomEndpoint();
          GameObject leaderboard= getChildByName(this.gameObject,"Leaderboard");
         leaderboard.SetActive(false);
-        Gameplay.GetComponent<WebSocketClient>().Initiate(env.API_URL + "/random/joinrandom");
+        Gameplay.GetComponent<WebSocketClient>().Initiate(env.API_URL + "/random/random/"+username);
     }
 
     public void QuitGame()
@@ -465,7 +477,10 @@ GameObject ExitIcon = getChildByName(this.gameObject,"ExitIcon");
     public void HideAllCanvas()
     {
         foreach (Transform child in this.transform)
-        {
+        {   
+            if(child.gameObject.name=="Loading"){
+                continue;
+            }
             child.gameObject.SetActive(false);
         }
     }
@@ -510,5 +525,37 @@ GameObject ExitIcon = getChildByName(this.gameObject,"ExitIcon");
         GameObject loginObj = getChildByName(this.gameObject,"Login");
         loginObj.SetActive(true);
     }
+
+    public void publicRoom(string roomId){
+        this.HideAllCanvas();
+        GameObject publicObj = getChildByName(this.gameObject,"Public");
+        publicObj.SetActive(true);
+
+        string Endpoint = env.API_URL + '/' + roomId + "/_/"+this.username;
+        Debug.Log(Endpoint);
+        Gameplay.GetComponent<WebSocketClient>().Initiate(Endpoint);
+    }
+
+   public void showPerformance(GameResultList gameResultList)
+{
+    GameObject perfObj = getChildByName(this.gameObject, "Performance");
+    perfObj.SetActive(true);
+    GameObject panelRef = getChildByName(perfObj, "PANEL");
+    GameObject scrollObj = getChildByName(getChildByName(perfObj, "Scroll View"), "KEEP");
+    
+    foreach (GameResult it in gameResultList.results)
+    {
+        GameObject panel = Instantiate(panelRef, Vector3.zero, Quaternion.identity);
+        
+        getChildByName(panel, "RANK").GetComponent<TextMeshProUGUI>().text = it.rank.ToString();
+        getChildByName(panel, "CORRECT").GetComponent<TextMeshProUGUI>().text = it.correct.ToString();
+        getChildByName(panel, "WRONG").GetComponent<TextMeshProUGUI>().text = it.wrong.ToString();
+        getChildByName(panel, "ACC").GetComponent<TextMeshProUGUI>().text = it.acceptance.ToString("F2");   
+        getChildByName(panel, "DURATION").GetComponent<TextMeshProUGUI>().text = it.duration;
+        getChildByName(panel, "DATE").GetComponent<TextMeshProUGUI>().text = it.time;
+
+        panel.transform.SetParent(scrollObj.transform, false);
+    }
+}
 
 }
