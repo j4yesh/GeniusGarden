@@ -35,8 +35,8 @@ public class lobbyController : MonoBehaviour
     public string gameState;
     public GameObject realtimeNameTemp;
     void Start()
-    {   
-        this.gameState="menu";
+    {
+        this.gameState = "menu";
         playerInRoom = new Dictionary<string, List<GameObject>>();
         canvas1 = transform.Find("1")?.gameObject;
         HostCanvas = transform.Find("HostCanvas")?.gameObject;
@@ -52,19 +52,19 @@ public class lobbyController : MonoBehaviour
         camerafollow.setBlur(true);
         this.LoadData();
         // selfUsername.text = GenerateRandomEndpoint();
-        GameObject rankingObj = getChildByName(this.gameObject,"Ranking");
+        GameObject rankingObj = getChildByName(this.gameObject, "Ranking");
         rankingObj.SetActive(false);
-        GameObject leaderboardObj = getChildByName(this.gameObject,"Leaderboard");
+        GameObject leaderboardObj = getChildByName(this.gameObject, "Leaderboard");
         leaderboardObj.SetActive(true);
     }
 
 
     public void hostGame(string roomId)
-    {   
-        GameObject leaderboard=getChildByName(this.gameObject,"Leaderboard");
+    {
+        GameObject leaderboard = getChildByName(this.gameObject, "Leaderboard");
         leaderboard.SetActive(false);
 
-        string Endpoint = env.API_URL + '/' + roomId + "/host/"+this.username;
+        string Endpoint = env.API_URL + '/' + roomId + "/host/" + this.username;
         Debug.Log(Endpoint);
         canvas1.SetActive(false);
         HostCanvas.SetActive(true);
@@ -82,7 +82,7 @@ public class lobbyController : MonoBehaviour
     }
 
     public void addPlayerEntry(string name)
-    {   
+    {
 
         Debug.Log("Adding the Player entry: " + name);
         GameObject nameObj = Instantiate(PlayerEntryUI, Vector3.zero, Quaternion.identity);
@@ -112,10 +112,11 @@ public class lobbyController : MonoBehaviour
 
 
     public void JoinGame()
-    {   
-        GameObject leaderboard= getChildByName(this.gameObject,"Leaderboard");
-        leaderboard.SetActive(false);
-        canvas1.SetActive(false);
+    {
+        // GameObject leaderboard = getChildByName(this.gameObject, "Leaderboard");
+        // leaderboard.SetActive(false);
+        // canvas1.SetActive(false);
+        this.HideAllCanvas();
         JoinCanvas.SetActive(true);
     }
 
@@ -131,11 +132,12 @@ public class lobbyController : MonoBehaviour
         tempObj1.GetComponent<TextMeshProUGUI>().text = "ROOM ID: " + joinRoomId;
 
         // Gameplay.GetComponent<WebSocketClient>().Initiate(env.API_URL + '/' + joinRoomId + "/join");
-        this.gameObject.GetComponent<RestAPI>().joinGameReq("",joinRoomId);
+        this.gameObject.GetComponent<RestAPI>().joinGameReq("", joinRoomId);
     }
 
-    public void callbackJoinGame(string joinRoomId){
-        Gameplay.GetComponent<WebSocketClient>().Initiate(env.API_URL + '/' + joinRoomId + "/join/" +this.username);
+    public void callbackJoinGame(string joinRoomId)
+    {
+        Gameplay.GetComponent<WebSocketClient>().Initiate(env.API_URL + '/' + joinRoomId + "/join/" + this.username);
 
     }
 
@@ -189,9 +191,9 @@ public class lobbyController : MonoBehaviour
     }
 
     public void startGameRemoveUI()
-    {   
+    {
         this.HideAllCanvas();
-        GameObject rankingObj = getChildByName(this.gameObject,"Ranking");
+        GameObject rankingObj = getChildByName(this.gameObject, "Ranking");
         rankingObj.SetActive(true);
         GameObject settingIcon = getChildByName(this.gameObject, "SettingIcon");
         settingIcon.SetActive(true);
@@ -201,7 +203,7 @@ public class lobbyController : MonoBehaviour
         resultObj.SetActive(false);
 
 
-        this.gameState="gameplay";
+        this.gameState = "gameplay";
         HostCanvas.SetActive(false);
         GameObject joinCanvas1 = getChildByName(this.gameObject, "JoinCanvas1");
         joinCanvas1.SetActive(false);
@@ -210,16 +212,16 @@ public class lobbyController : MonoBehaviour
         __joystick.SetActive(true);
         camerafollow.setBlur(false);
 
-        
+
     }
 
     public void playPublicRoom()
     {
         this.startGameRemoveUI();
         // username=GenerateRandomEndpoint();
-         GameObject leaderboard= getChildByName(this.gameObject,"Leaderboard");
+        GameObject leaderboard = getChildByName(this.gameObject, "Leaderboard");
         leaderboard.SetActive(false);
-        Gameplay.GetComponent<WebSocketClient>().Initiate(env.API_URL + "/random/random/"+username);
+        Gameplay.GetComponent<WebSocketClient>().Initiate(env.API_URL + "/random/random/" + username);
     }
 
     public void QuitGame()
@@ -239,7 +241,7 @@ public class lobbyController : MonoBehaviour
 
     public void showError(string data)
     {
-this.   HideAllCanvas();
+        this.HideAllCanvas();
 
 
         GameObject errorCanvas = getChildByName(this.gameObject, "Error");
@@ -251,17 +253,17 @@ this.   HideAllCanvas();
 
 
     public void showResult(List<string> ranking, int rank)
-    {   
+    {
 
         GameObject settingIcon = getChildByName(this.gameObject, "SettingIcon");
         settingIcon.SetActive(false);
         GameObject exitIcon = getChildByName(this.gameObject, "ExitIcon");
         exitIcon.SetActive(false);
 
-        GameObject rankingObj = getChildByName(this.gameObject,"Ranking");
+        GameObject rankingObj = getChildByName(this.gameObject, "Ranking");
         rankingObj.SetActive(false);
 
-        Gameplay.GetComponent<Gameplay>().canTouch = false; 
+        Gameplay.GetComponent<Gameplay>().canTouch = false;
         camerafollow.setBlur(true);
         GameObject resultObj = getChildByName(this.gameObject, "Result");
         GameObject baggyObj = getChildByName(resultObj, "BAGGY");
@@ -309,7 +311,7 @@ this.   HideAllCanvas();
     }
 
     public void realtimeGameRanking(List<string> rankingList)
-    {   
+    {
 
         if (rankingList == null || rankingList.Count == 0)
         {
@@ -321,10 +323,12 @@ this.   HideAllCanvas();
 
         GameObject rankingObj = getChildByName(this.gameObject, "Ranking");
 
-          foreach (Transform child in rankingObj.transform)
-        {   
-            if(child.gameObject.name!="Rank"){
-            Destroy(child.gameObject);}
+        foreach (Transform child in rankingObj.transform)
+        {
+            if (child.gameObject.name != "Rank")
+            {
+                Destroy(child.gameObject);
+            }
         }
 
         foreach (Transform child in rankingObj.transform)
@@ -352,16 +356,18 @@ this.   HideAllCanvas();
     }
 
     public void Settings()
-    {    GameObject leaderboard= getChildByName(this.gameObject,"Leaderboard");
+    {   
+        this.HideAllCanvas();
+        GameObject leaderboard = getChildByName(this.gameObject, "Leaderboard");
         leaderboard.SetActive(false);
-        
-        GameObject settingIcon = getChildByName(this.gameObject,"SettingIcon");
+
+        GameObject settingIcon = getChildByName(this.gameObject, "SettingIcon");
         settingIcon.SetActive(false);
 
-GameObject ExitIcon = getChildByName(this.gameObject,"ExitIcon");
+        GameObject ExitIcon = getChildByName(this.gameObject, "ExitIcon");
         ExitIcon.SetActive(false);
-        
-        Gameplay.GetComponent<Gameplay>().canTouch=false;
+
+        Gameplay.GetComponent<Gameplay>().canTouch = false;
         GameObject settingObj = getChildByName(this.gameObject, "Setting");
         GameObject menuObj = getChildByName(this.gameObject, "1");
         menuObj.SetActive(false);
@@ -383,102 +389,116 @@ GameObject ExitIcon = getChildByName(this.gameObject,"ExitIcon");
         if (saveData != null)
         {
             this.username = saveData.username;
-                selfUsername.text = this.username;
+            selfUsername.text = this.username;
 
-        
+
             GameObject settingObj = getChildByName(this.gameObject, "Setting");
 
-                GameObject musicObj = getChildByName(settingObj, "Music");
-                GameObject sfxObj = getChildByName(settingObj, "SFX");
-                
-                    musicObj.GetComponent<Toggle>().isOn = saveData.bgmAllowed;
-                    sfxObj.GetComponent<Toggle>().isOn = saveData.sfxAllowed;
+            GameObject musicObj = getChildByName(settingObj, "Music");
+            GameObject sfxObj = getChildByName(settingObj, "SFX");
 
-                soundeffect.setSFX(saveData.sfxAllowed);
-                soundeffect.setBGM(saveData.bgmAllowed);
-            
-                Debug.Log("music status "+saveData.bgmAllowed+" "+saveData.sfxAllowed);
-        }else{
+            musicObj.GetComponent<Toggle>().isOn = saveData.bgmAllowed;
+            sfxObj.GetComponent<Toggle>().isOn = saveData.sfxAllowed;
+
+            soundeffect.setSFX(saveData.sfxAllowed);
+            soundeffect.setBGM(saveData.bgmAllowed);
+
+            Debug.Log("music status " + saveData.bgmAllowed + " " + saveData.sfxAllowed);
+        }
+        else
+        {
             Debug.Log("saved data not found. ");
         }
     }
 
-    public void showRules(){
-        GameObject settingObj = getChildByName(this.gameObject,"Setting");    
-        GameObject ruleScroll = getChildByName(this.gameObject,"RulesScroll");
+    public void showRules()
+    {
+        GameObject settingObj = getChildByName(this.gameObject, "Setting");
+        GameObject ruleScroll = getChildByName(this.gameObject, "RulesScroll");
         settingObj.SetActive(false);
         ruleScroll.SetActive(true);
     }
-    public void hideRules(){
-        GameObject settingObj = getChildByName(this.gameObject,"Setting");    
-        GameObject ruleScroll = getChildByName(this.gameObject,"RulesScroll");
+    public void hideRules()
+    {
+        GameObject settingObj = getChildByName(this.gameObject, "Setting");
+        GameObject ruleScroll = getChildByName(this.gameObject, "RulesScroll");
         settingObj.SetActive(true);
         ruleScroll.SetActive(false);
     }
-    public void showPolicy(){
-        GameObject settingObj = getChildByName(this.gameObject,"Setting");    
-        GameObject policyScroll = getChildByName(this.gameObject,"PolicyScroll");
+    public void showPolicy()
+    {
+        GameObject settingObj = getChildByName(this.gameObject, "Setting");
+        GameObject policyScroll = getChildByName(this.gameObject, "PolicyScroll");
         settingObj.SetActive(false);
         policyScroll.SetActive(true);
     }
-    public void hidePolicy(){
-        GameObject settingObj = getChildByName(this.gameObject,"Setting");    
-        GameObject policyScroll = getChildByName(this.gameObject,"PolicyScroll");
+    public void hidePolicy()
+    {
+        GameObject settingObj = getChildByName(this.gameObject, "Setting");
+        GameObject policyScroll = getChildByName(this.gameObject, "PolicyScroll");
         settingObj.SetActive(true);
         policyScroll.SetActive(false);
     }
 
-    public void backFromSettings(){
-        if(this.gameState=="menu"){
+    public void backFromSettings()
+    {
+        if (this.gameState == "menu")
+        {
             this.RestartScene();
-        }else if(this.gameState=="gameplay"){
-            GameObject settingIcon = getChildByName(this.gameObject,"SettingIcon");
-        settingIcon.SetActive(true);
+        }
+        else if (this.gameState == "gameplay")
+        {
+            GameObject settingIcon = getChildByName(this.gameObject, "SettingIcon");
+            settingIcon.SetActive(true);
 
-GameObject ExitIcon = getChildByName(this.gameObject,"ExitIcon");
-        ExitIcon.SetActive(true);
-            Gameplay.GetComponent<Gameplay>().canTouch=true;
-            GameObject settingObj = getChildByName(this.gameObject,"Setting");
+            GameObject ExitIcon = getChildByName(this.gameObject, "ExitIcon");
+            ExitIcon.SetActive(true);
+            Gameplay.GetComponent<Gameplay>().canTouch = true;
+            GameObject settingObj = getChildByName(this.gameObject, "Setting");
             settingObj.SetActive(false);
 
-             GameObject notificObj = getChildByName(this.gameObject,"Notification");
-        notificObj.SetActive(false);
+            GameObject notificObj = getChildByName(this.gameObject, "Notification");
+            notificObj.SetActive(false);
         }
     }
 
-    public void exitGameplay(){
+    public void exitGameplay()
+    {
         camerafollow.setBlur(true);
-        
-        GameObject confirmation = getChildByName(this.gameObject,"Confirmation");
-        Gameplay.GetComponent<Gameplay>().canTouch=false;
+
+        GameObject confirmation = getChildByName(this.gameObject, "Confirmation");
+        Gameplay.GetComponent<Gameplay>().canTouch = false;
         GameObject textObject = getChildByName(confirmation, "text");
         textObject.GetComponent<TextMeshProUGUI>().text = "Are you sure you want to exit the game?";
         confirmation.SetActive(true);
     }
-    public void continueGameplay(){
+    public void continueGameplay()
+    {
         camerafollow.setBlur(false);
 
-        GameObject settingIcon = getChildByName(this.gameObject,"SettingIcon");
+        GameObject settingIcon = getChildByName(this.gameObject, "SettingIcon");
         settingIcon.SetActive(true);
 
-GameObject ExitIcon = getChildByName(this.gameObject,"ExitIcon");
+        GameObject ExitIcon = getChildByName(this.gameObject, "ExitIcon");
         ExitIcon.SetActive(true);
 
-        GameObject confimation = getChildByName(this.gameObject,"Confirmation");
+        GameObject confimation = getChildByName(this.gameObject, "Confirmation");
         confimation.SetActive(false);
-        Gameplay.GetComponent<Gameplay>().canTouch=true;
+        Gameplay.GetComponent<Gameplay>().canTouch = true;
     }
 
-    public void callRematch(){
-        
+    public void callRematch()
+    {
+
         Gameplay.GetComponent<WebSocketClient>().callRematch();
     }
 
     public void HideAllCanvas()
     {
         foreach (Transform child in this.transform)
-        {   
-            if(child.gameObject.name=="Loading"){
+        {
+            if (child.gameObject.name == "Loading")
+            {
                 continue;
             }
             child.gameObject.SetActive(false);
@@ -502,47 +522,54 @@ GameObject ExitIcon = getChildByName(this.gameObject,"ExitIcon");
         }
     }
 
-    public void showNotification(string message){
+    public void showNotification(string message)
+    {
         GameObject settingIcon = getChildByName(this.gameObject, "SettingIcon");
         settingIcon.SetActive(false);
         GameObject exitIcon = getChildByName(this.gameObject, "ExitIcon");
         exitIcon.SetActive(false);
 
-        GameObject notificObj = getChildByName(this.gameObject,"Notification");
+        GameObject notificObj = getChildByName(this.gameObject, "Notification");
         notificObj.SetActive(true);
 
-        GameObject textObj = getChildByName(notificObj,"text");
-        textObj.GetComponent<TextMeshProUGUI>().text=message;
-                Gameplay.GetComponent<Gameplay>().canTouch = false; 
+        GameObject textObj = getChildByName(notificObj, "text");
+        textObj.GetComponent<TextMeshProUGUI>().text = message;
+        Gameplay.GetComponent<Gameplay>().canTouch = false;
 
     }
 
-    public void showLogin(){
-        GameObject leadObj = getChildByName(this.gameObject,"Leaderboard");
-        GameObject MenuObj = getChildByName(this.gameObject,"1");
-        MenuObj.SetActive(false);
-        leadObj.SetActive(false);
-        GameObject loginObj = getChildByName(this.gameObject,"Login");
+    public void showLogin()
+    {   
+        this.HideAllCanvas();
+        GameObject loginObj = getChildByName(this.gameObject, "Login");
         loginObj.SetActive(true);
     }
 
-    public void publicRoom(string roomId){
+    public void publicRoom(string roomId)
+    {
         this.HideAllCanvas();
-        GameObject publicObj = getChildByName(this.gameObject,"Public");
+        GameObject publicObj = getChildByName(this.gameObject, "Public");
         publicObj.SetActive(true);
 
-        string Endpoint = env.API_URL + '/' + roomId + "/_/"+this.username;
+        string Endpoint = env.API_URL + '/' + roomId + "/_/" + this.username;
         Debug.Log(Endpoint);
         Gameplay.GetComponent<WebSocketClient>().Initiate(Endpoint);
     }
 
-   public void showPerformance(GameResultList gameResultList)
+    public void showPerformance(GameResultList gameResultList)
 {
     GameObject perfObj = getChildByName(this.gameObject, "Performance");
     perfObj.SetActive(true);
+
     GameObject panelRef = getChildByName(perfObj, "PANEL");
     GameObject scrollObj = getChildByName(getChildByName(perfObj, "Scroll View"), "KEEP");
-    
+RectTransform scrollRectTransform = scrollObj.GetComponent<RectTransform>();
+    foreach (Transform child in scrollObj.transform)
+    {
+        Destroy(child.gameObject);
+    }
+ float panelHeight = panelRef.GetComponent<RectTransform>().rect.height;
+    float spacing = 5f;
     foreach (GameResult it in gameResultList.results)
     {
         GameObject panel = Instantiate(panelRef, Vector3.zero, Quaternion.identity);
@@ -550,12 +577,17 @@ GameObject ExitIcon = getChildByName(this.gameObject,"ExitIcon");
         getChildByName(panel, "RANK").GetComponent<TextMeshProUGUI>().text = it.rank.ToString();
         getChildByName(panel, "CORRECT").GetComponent<TextMeshProUGUI>().text = it.correct.ToString();
         getChildByName(panel, "WRONG").GetComponent<TextMeshProUGUI>().text = it.wrong.ToString();
-        getChildByName(panel, "ACC").GetComponent<TextMeshProUGUI>().text = it.acceptance.ToString("F2");   
+        getChildByName(panel, "ACC").GetComponent<TextMeshProUGUI>().text = it.acceptance.ToString("F2");
         getChildByName(panel, "DURATION").GetComponent<TextMeshProUGUI>().text = it.duration;
         getChildByName(panel, "DATE").GetComponent<TextMeshProUGUI>().text = it.time;
 
         panel.transform.SetParent(scrollObj.transform, false);
+
+        scrollRectTransform.sizeDelta = new Vector2(scrollRectTransform.sizeDelta.x,
+            scrollRectTransform.sizeDelta.y + panelHeight + spacing);
     }
+
 }
+
 
 }

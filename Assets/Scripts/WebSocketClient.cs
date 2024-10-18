@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using NativeWebSocket;
+using TMPro;
 using System.Text;
 
 [System.Serializable]
@@ -48,6 +49,14 @@ public class WebSocketClient : MonoBehaviour
     public lobbyController lobbycontroller;
     public SoundEffect soundeffect;
 
+    private DateTime pingSentTime;
+    private bool awaitingPong = false;
+
+    public TextMeshProUGUI Ping=null;
+
+     private float pingUpdateInterval = 1.0f;
+    private float timeSinceLastUpdate = 0.0f;
+
     public async void Initiate(string Endpoint)
     {
         loading.show();
@@ -91,6 +100,7 @@ public class WebSocketClient : MonoBehaviour
             {
                 Debug.Log("Error while parsing JSON: " + e.Message);
             }
+           
             switch (pl.type)
             {
                 case "position":
@@ -108,7 +118,17 @@ public class WebSocketClient : MonoBehaviour
                     {
                         Debug.Log("Player not found in map");
                     }
-
+                     if (awaitingPong && pl.socketId==this.selfId)
+                    {
+                         TimeSpan pingTime = DateTime.Now - pingSentTime;
+                
+                        if (timeSinceLastUpdate >= pingUpdateInterval)
+                        {
+                            Ping.text = "Ping: " + pingTime.TotalMilliseconds.ToString("F2") + " ms";
+                            timeSinceLastUpdate = 0.0f; 
+                        }
+                        awaitingPong = false;
+                    }
                     break;
 
                 case "spawn rat":
@@ -284,7 +304,7 @@ public class WebSocketClient : MonoBehaviour
     {
         try
         {
-
+             timeSinceLastUpdate += Time.deltaTime;
 #if (!UNITY_WEBGL || UNITY_EDITOR)
             websocket.DispatchMessageQueue();
 #endif
@@ -308,9 +328,9 @@ public class WebSocketClient : MonoBehaviour
                 moveY + ", " + "0" + "],"
                 + "\"rotation\": " + this.playerPosition.transform.rotation.eulerAngles.z
                 + "}";
-
-
+                pingSentTime = DateTime.Now;
                 await websocket.SendText(jsonMessage);
+                awaitingPong = true;   
 
             }
             catch (Exception ex)
